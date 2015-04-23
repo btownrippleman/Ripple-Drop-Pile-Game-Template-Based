@@ -26,6 +26,31 @@ local function onPlayBtnRelease()
 
 	return true	-- indicates successful touch
 end
+local function functionMultiplier(fcn,event)
+
+   for i=1,100 do
+	x= fcn(event)
+	return x
+	end
+
+end
+
+
+
+local function crateCreate(event)
+
+	-- So, we can get the proper display group for the scene
+	crate = display.newImage("crate.png", event.x, event.y, 10)
+	local scaleFactor = .5
+	local scaleX,scaleY = scaleFactor,scaleFactor;
+	crate:scale(scaleX,scaleY);
+
+	local nw, nh = crate.width*scaleX*0.5, crate.height*scaleY*0.5;
+	physics.addBody(crate, { density = 2.5, friction = .2, bounce = .1, shape={-nw,-nh,nw,-nh,nw,nh,-nw,nh} });
+  return crate
+end
+
+
 function scene:create( event )
 
 	-- Called when the scene's view does not exist.
@@ -132,18 +157,55 @@ function scene:touch( event )
 	-- (table) variation for the event listener.
 	local sceneGroup = self.view
 
-	-- So, we can get the proper display group for the scene
-	crate = display.newImage("crate.png", event.x, event.y, 10)
-	local scaleFactor = .5
-	local scaleX,scaleY = scaleFactor,scaleFactor;
-	crate:scale(scaleX,scaleY);
-
-	local nw, nh = crate.width*scaleX*0.5, crate.height*scaleY*0.5;
-	physics.addBody(crate, { density = 2.5, friction = .2, bounce = .1, shape={-nw,-nh,nw,-nh,nw,nh,-nw,nh} });
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
+	crate = crateCreate(event)
 	sceneGroup:insert(crate)
 	playBtn:toFront()
 	-- Increment our global circle counter
-	--g.numCircles = g.numCircles + 1
+	--g.numCircles = g.numCircles + 1q
 end
 ---------------------------------------------------------------------------------
 
