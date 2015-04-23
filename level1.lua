@@ -91,7 +91,7 @@ function scene:show( event )
 		-- INSERT code here to make the scene come alive
 		-- e.g. start timers, begin animation, play audio, etc.
 		physics.start()
-		Runtime:addEventListener( "tap", self )
+		Runtime:addEventListener( "touch", self )
 
 	end
 end
@@ -124,8 +124,8 @@ function scene:destroy( event )
 	package.loaded[physics] = nil
 	physics = nil
 end
-function scene:tap( event )
-	-- Add a new small white circle at the tap point
+function scene:touch( event )
+	-- Add a new small white circle at the touch point
 
 	-- We can access self (which is scene), because we are in a method
 	-- on the scene object, which is why we used the object-oriented
@@ -141,6 +141,7 @@ function scene:tap( event )
 	local nw, nh = crate.width*scaleX*0.5, crate.height*scaleY*0.5;
 	physics.addBody(crate, { density = 2.5, friction = .2, bounce = .1, shape={-nw,-nh,nw,-nh,nw,nh,-nw,nh} });
 	sceneGroup:insert(crate)
+	playBtn:toFront()
 	-- Increment our global circle counter
 	--g.numCircles = g.numCircles + 1
 end
