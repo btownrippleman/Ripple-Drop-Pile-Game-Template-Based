@@ -3,6 +3,8 @@
 -- level1.lua
 --
 -----------------------------------------------------------------------------------------
+
+
 local widget = require "widget"
 
 local composer = require( "composer" )
@@ -16,42 +18,54 @@ physics.start(); --physics.pause() -- i don't see the point in physics.pause()
 
 -- forward declarations and other locals
 local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentWidth*0.5
-local playBtn
+local scaleFactor = scaleFactorOfBoxes
+local menuBtn
 
--- 'onRelease' event listener for playBtn
-local function onPlayBtnRelease()
+-- 'onRelease' event listener for menuBtn
+local function onMenuBtnRelease()
 
 	-- go to level1.lua scene
-	composer.gotoScene( "menu", "fade", 500 )
+	composer.gotoScene( "menu", "fade", 100 )
 
 	return true	-- indicates successful tap
-end
-local function functionMultiplier(fcn,event)
-
-   for i=1,100 do
-	x= fcn(event)
-	return x
-	end
 
 end
 
 
+	-- 'onRelease' event listener for menuBtn
+local function onOptionsBtnRelease()
 
-local function crateCreate(event)
+		-- go to options.lua
+ 		composer.gotoScene( "options", "fade", 100 )
+
+		return true	-- indicates successful tap
+end
+
+
+local function crateCreate(event,parent)
 
 	-- So, we can get the proper display group for the scene
-	crate = display.newImage("crate.png", event.x, event.y, 10)
-	local scaleFactor = .5
-	local scaleX,scaleY = scaleFactor,scaleFactor;
-	crate:scale(scaleX,scaleY);
+	for i=1,numberOfBoxes do
+		crate = display.newImage("crate.png", event.x, event.y)
+		local scaleX,scaleY = scaleFactorOfBoxes,scaleFactorOfBoxes;
+		crate:scale(scaleX,scaleY);
+		--display.newText(numberOfBoxes,math.random(333),math.random(333))
+		--this was just really see the actual value of the number of boxes, i realized the real problem was that i need to remove the event listener
 
-	local nw, nh = crate.width*scaleX*0.5, crate.height*scaleY*0.5;
-	physics.addBody(crate, { density = 2.5, friction = .2, bounce = .1, shape={-nw,-nh,nw,-nh,nw,nh,-nw,nh} });
-  return crate
+		local nw, nh = crate.width*scaleX*0.5, crate.height*scaleY*0.5;
+		physics.addBody(crate, { density = 2.5, friction = .2, bounce = boxBounciness, shape={-nw,-nh,nw,-nh,nw,nh,-nw,nh} });
+		parent:insert(crate)
+  end
+
+
+	--menuBtn:toFront()
+  --return crate
 end
 
 
 function scene:create( event )
+
+
 
 	-- Called when the scene's view does not exist.
 	--
@@ -81,16 +95,29 @@ function scene:create( event )
 	grass.x, grass.y = 0, display.contentHeight
 	-- create a widget button (which will loads level1.lua on release)
 
-	playBtn = widget.newButton{
+	menuBtn = widget.newButton{
 		label="Return to Main Menu",
 		labelColor = { default={255}, over={128} },
 		default="button.png",
 		over="button-over.png",
 		width=154, height=40,
-		onRelease = onPlayBtnRelease	-- event listener function
+		onRelease = onMenuBtnRelease	-- event listener function
 	}
-	playBtn.x = display.contentWidth*0.5
-	playBtn.y = display.contentHeight - 125
+	menuBtn.x = display.contentWidth*0.5
+	menuBtn.y = display.contentHeight - 125
+
+	optionsBtn = widget.newButton{
+		label="Options",
+		labelColor = { default={255}, over={128} },
+		default="button.png",
+		over="button-over.png",
+		width=154, height=40,
+		onRelease = onOptionsBtnRelease	-- event listener function
+	}
+	optionsBtn.x = menuBtn.x
+	optionsBtn.y = menuBtn.y - 40
+
+
 	-- define a shape that's slightly shorter than image bounds (set draw mode to "hybrid" or "debug" to see)
 	local grassShape = { -halfW,-34, halfW,-34, halfW,34, -halfW,34 }
 	physics.addBody( grass, "static", { friction=0.3, shape=grassShape } )
@@ -99,12 +126,15 @@ function scene:create( event )
 	sceneGroup:insert( background )
 	sceneGroup:insert( grass)
 	sceneGroup:insert( crate )
-	sceneGroup:insert( playBtn )
+	sceneGroup:insert( menuBtn )
+	sceneGroup:insert( optionsBtn )
 
 end
 
 
 function scene:show( event )
+
+
 	local sceneGroup = self.view
 	local phase = event.phase
 
@@ -122,16 +152,22 @@ function scene:show( event )
 end
 
 function scene:hide( event )
+
 	local sceneGroup = self.view
 
 	local phase = event.phase
 
 	if event.phase == "will" then
+		previousScene = "level1"
+
 		-- Called when the scene is on screen and is about to move off screen
 		--
 		-- INSERT code here to pause the scene
 		-- e.g. stop timers, stop animation, unload sounds, etc.)
+
 		physics.pause() -- this used to be physics.stop()
+		Runtime:removeEventListener( "tap", self )
+
 	elseif phase == "did" then
 		-- Called when the scene is now off screen
 	end
@@ -149,18 +185,15 @@ function scene:destroy( event )
 	package.loaded[physics] = nil
 	physics = nil
 end
-function scene:tap( event )
-	-- Add a new small white circle at the tap point
 
-	-- We can access self (which is scene), because we are in a method
-	-- on the scene object, which is why we used the object-oriented
-	-- (table) variation for the event listener.
+function scene:tap( event )
 	local sceneGroup = self.view
 
-
-	crate = crateCreate(event)
-	sceneGroup:insert(crate)
-	playBtn:toFront()
+  crateCreate(event,sceneGroup)
+	--text = display.newText(numberOfBoxes,math.random(300),math.random(300))
+  --sceneGroup:insert(text)
+	menuBtn:toFront()
+	optionsBtn:toFront()
 	-- Increment our global circle counter
 	--g.numCircles = g.numCircles + 1
 end

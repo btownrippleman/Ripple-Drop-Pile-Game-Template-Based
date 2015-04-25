@@ -12,19 +12,61 @@ local widget = require "widget"
 
 --------------------------------------------
 
+--function for restart button action
+local function restart()
+
+	composer.removeScene("options")
+	composer.removeScene("level1")
+	initializeValues()
+  restartButton:removeSelf()
+	restartButton =nil
+	composer.gotoScene( "level1", "fade", 100 )
+
+end
+
+--function to make restart button
+
+local function restartButtonMake(parent)
+	if  previousScene ~= nil then
+ 	 restartButton = widget.newButton{
+		label="Restart",
+		labelColor = { default={255}, over={128} },
+		default="button.png",
+		over="button-over.png",
+		width=154, height=40,
+		onRelease = restart	-- event listener function
+	}
+	restartButton.x = display.contentWidth*0.5
+	restartButton.y = display.contentHeight - 85
+  parent:insert(restartButton)
+
+end
+end
+
 -- forward declarations and other locals
+local optionsBtn
 local playBtn
 
 -- 'onRelease' event listener for playBtn
 local function onPlayBtnRelease()
 
 	-- go to level1.lua scene
-	composer.gotoScene( "level1", "fade", 500 )
+	composer.gotoScene( "level1", "fade", 100 )
 
 	return true	-- indicates successful touch
 end
 
+local function onOptionsBtnRelease()
+
+	-- go to options.lua
+	composer.gotoScene( "options", "fade", 100 )
+
+	return true	-- indicates successful tap
+end
+
 function scene:create( event )
+
+
 	local sceneGroup = self.view
 
 	-- Called when the scene's view does not exist.
@@ -39,11 +81,12 @@ function scene:create( event )
 	background.x, background.y = 0, 0
 
 	-- create/position logo/title image on upper-half of the screen
-	local titleLogo = display.newImageRect( "logo.png", 264, 42 )
+	local titleLogo = display.newText( "Boxes 'O Fun", 264, 42,"",50 )
 	titleLogo.x = display.contentWidth * 0.5
 	titleLogo.y = 100
 
-	-- create a widget button (which will loads level1.lua on release)
+	--create restart button widget if menu is not the only thing pressed
+ 	-- create a widget button (which will loads level1.lua on release)
 	playBtn = widget.newButton{
 		label="Play Now",
 		labelColor = { default={255}, over={128} },
@@ -55,17 +98,35 @@ function scene:create( event )
 	playBtn.x = display.contentWidth*0.5
 	playBtn.y = display.contentHeight - 125
 
+	optionsBtn = widget.newButton{
+		label="Options",
+		labelColor = { default={255}, over={128} },
+		default="button.png",
+		over="button-over.png",
+		width=154, height=40,
+		onRelease = onOptionsBtnRelease	-- event listener function
+	}
+	optionsBtn.x = playBtn.x
+	optionsBtn.y = playBtn.y - 40
+
+
+
 	-- all display objects must be inserted into group
 	sceneGroup:insert( background )
 	sceneGroup:insert( titleLogo )
 	sceneGroup:insert( playBtn )
+	sceneGroup:insert( optionsBtn )
 end
 
 function scene:show( event )
+
+
 	local sceneGroup = self.view
 	local phase = event.phase
 
 	if phase == "will" then
+		restartButtonMake(sceneGroup)
+
 		-- Called when the scene is still off screen and is about to move on screen
 	elseif phase == "did" then
 		-- Called when the scene is now on screen
@@ -76,15 +137,19 @@ function scene:show( event )
 end
 
 function scene:hide( event )
+
 	local sceneGroup = self.view
 	local phase = event.phase
 
 	if event.phase == "will" then
+
+		previousScene = "menu"
+
 		-- Called when the scene is on screen and is about to move off screen
 		--
 		-- INSERT code here to pause the scene
 		-- e.g. stop timers, stop animation, unload sounds, etc.)
-		
+
 	elseif phase == "did" then
 		-- Called when the scene is now off screen
 	end
