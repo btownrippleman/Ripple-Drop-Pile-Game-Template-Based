@@ -3,46 +3,42 @@
 -- menu.lua
 --
 -----------------------------------------------------------------------------------------
-
+require("languages")
 local composer = require( "composer" )
 local scene = composer.newScene()
-local newText =display.newText("",math.random(300),math.random(300))
 
 
 -- include Corona's "widget" library
 local widget = require "widget"
-local sceneGroup
 
 -- forward declarations and other locals
+local sceneGroup
 
--- 'onRelease' event listener for doneBtn
+
+
+-- the next 3 sliderlisteners are to change value in number of boxes, box size and bounciness
 
 local function   numberOfBoxesSliderListener(event)
-	numberOfBoxes = math.round(event.value/maxNumberOfBoxes)
---newText.text = ""
---newText = display.newText(numberOfBoxes,math.random(300),math.random(300))
--- I used this as a means of catching errors
-
+	numberOfBoxes = math.round(event.value*maxNumberOfBoxes/100)
 end
 
 local function   boxSizeSliderListener(event)
 	scaleFactorOfBoxes =  event.value*0.01
---display.newText(scaleFactorOfBoxes,math.random(300),math.random(300))
--- I used this as a means of catching errors
-
 end
 
-local function   boxBouncinessSlider(event)
+local function   boxBouncinessSliderListener(event)
 	boxBounciness =  event.value*0.01
---display.newText(boxBounciness,math.random(300),math.random(300))
--- I used this as a means of catching errors
-
 end
-
 
 local function onDoneBtnRelease()
-  	-- go to level1.lua scene
+  	-- go to previous scene
   	composer.gotoScene( previousScene, "fade", 100 )
+
+  	return true	-- indicates successful touch
+end
+local function onlanguagePickButtonRelease()
+  	-- go to previous scene
+  	composer.gotoScene( "languagepick", "fade", 100 )
 
   	return true	-- indicates successful touch
   end
@@ -51,7 +47,10 @@ function scene:create( event )
 	 local sceneGroup = self.view
 
 
+
+--widget button for returning to prev screen
   doneBtn = widget.newButton{
+		font = _G.defaultFont, fontsize = _G.defaultFontSize,
 		label = "Done",
 		labelColor = { default={255}, over={128} },
 		default="button.png",
@@ -63,19 +62,23 @@ function scene:create( event )
 	doneBtn.x = display.contentWidth*0.5
 	doneBtn.y = display.contentHeight - 125
 
+--widget slider for # of boxes ranging from 1 to 10 starting at an initial value of 1
   numberOfBoxesSlider = widget.newSlider{
+		font = _G.defaultFont, fontsize = _G.defaultFontSize,
    		labelColor = { default={255}, over={128} },
   		default="button.png",
   		over="button-over.png",
   		width=154, height=40,
-			value = 5,
-      listener = numberOfBoxesSliderListener	-- event listener function
+		value = 5,
+      	listener = numberOfBoxesSliderListener	-- event listener function
   	}
   numberOfBoxesSlider.x = display.contentWidth*0.5 - 44
   numberOfBoxesSlider.y = doneBtn.y - 40
 	boxText = display.newText(sceneGroup," #Boxes",numberOfBoxesSlider.x+105,numberOfBoxesSlider.y)
 
+	--widget slider for box size changing a scale factor from 0 to 1 of the initial large box starting at .5
 	boxSizeSlider = widget.newSlider{
+		font = _G.defaultFont, fontsize = _G.defaultFontSize,
   		labelColor = { default={255}, over={128} },
   		default="button.png",
   		over="button-over.png",
@@ -86,20 +89,20 @@ function scene:create( event )
 	boxSizeSlider.y = numberOfBoxesSlider.y - 40
 	boxText2 = display.newText(sceneGroup,"  Box Size",boxSizeSlider.x+105,boxSizeSlider.y)
 
+	--widget slider for box bounciness going from 0 to 1 starting at .5
 	boxBouncinessSlider = widget.newSlider{
- 	  		labelColor = { default={255}, over={128} },
-	  		default="button.png",
-	  		over="button-over.png",
-	  		width=154, height=40,
-	      listener = boxBouncinessSliderListener	-- event listener function
+		font = _G.defaultFont, fontsize = _G.defaultFontSize,
+  		labelColor = { default={255}, over={128} },
+  		default="button.png",
+  		over="button-over.png",
+  		width=154, height=40,
+      	listener = boxBouncinessSliderListener	-- event listener function
 	  	}
 	boxBouncinessSlider.x = numberOfBoxesSlider.x
 	boxBouncinessSlider.y = boxSizeSlider.y - 40
 	boxText3  = display.newText(sceneGroup,"      Bounciness",boxBouncinessSlider.x+105,boxBouncinessSlider.y)
 
 	-- all display objects must be inserted into group
---	sceneGroup:insert( background )
-	--sceneGroup:insert( titleLogo )
 
 	sceneGroup:insert( numberOfBoxesSlider )
 	sceneGroup:insert( boxSizeSlider )
@@ -107,28 +110,8 @@ function scene:create( event )
 	sceneGroup:insert( boxText )
 	sceneGroup:insert( boxText2 )
 	sceneGroup:insert( boxText3 )
-	sceneGroup:insert( doneBtn )
-
-
-
-
--- Called when the scene's view does not exist.
---
--- INSERT code here to initialize the scene
--- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
-
--- display a background image
---local background = display.newImageRect( "background.jpg", display.contentWidth, display.contentHeight )
---	background.anchorX = 0
---	background.anchorY = 0
---background.x, background.y = 0, 0
-
--- create/position logo/title image on upper-half of the screen
---	local titleLogo = display.newImageRect( "logo.png", 264, 42 )
---titleLogo.x = display.contentWidth * 0.5
---titleLogo.y = 100
-
--- create a widget button (which will loads level1.lua on release)
+	sceneGroup:insert( doneBtn ) 
+	-- sceneGroup:insert( languagePickButton ) 
 
 end
 
@@ -174,13 +157,9 @@ local sceneGroup = self.view
 -- e.g. remove display objects, remove touch listeners, save state, etc.
 
 if doneBtn then
-	doneBtn:removeSelf()	-- widgets must be manually removed
-	doneBtn = nil
+	doneBtn:removeSelf()	-- widgets must be manually `removed`
 end
---[[  else if doneBtn then
-doneBtn:removeSelf()
-doneBtn = nil
-end]]--
+ 
 end
 
 ---------------------------------------------------------------------------------

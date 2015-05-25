@@ -3,7 +3,7 @@
 -- menu.lua
 --
 -----------------------------------------------------------------------------------------
-
+require("languages")
 local composer = require( "composer" )
 local scene = composer.newScene()
 
@@ -15,11 +15,7 @@ local widget = require "widget"
 --function for restart button action
 local function restart()
 
-	composer.removeScene("options")
-	composer.removeScene("level1")
-	initializeValues()
-  restartButton:removeSelf()
-	restartButton =nil
+ 	composer.removeScene("level1")
 	composer.gotoScene( "level1", "fade", 100 )
 
 end
@@ -29,6 +25,7 @@ end
 local function restartButtonMake(parent)
 	if  previousScene ~= nil then
  	 restartButton = widget.newButton{
+		font = _G.defaultFont, fontsize = _G.defaultFontSize,
 		label="Restart",
 		labelColor = { default={255}, over={128} },
 		default="button.png",
@@ -75,19 +72,21 @@ function scene:create( event )
 	-- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
 
 	-- display a background image
-	local background = display.newImageRect( "background.jpg", display.contentWidth, display.contentHeight )
+	local background = display.newImageRect( "flagworld.png", display.contentWidth, display.contentHeight )
+	background.alpha =.5
 	background.anchorX = 0
 	background.anchorY = 0
 	background.x, background.y = 0, 0
 
 	-- create/position logo/title image on upper-half of the screen
-	local titleLogo = display.newText( "Boxes 'O Fun", 264, 42,"",50 )
+	local titleLogo = display.newText( "Language Matchup", 264, 42,_G.defaultFont,32 )
 	titleLogo.x = display.contentWidth * 0.5
 	titleLogo.y = 100
 
 	--create restart button widget if menu is not the only thing pressed
  	-- create a widget button (which will loads level1.lua on release)
 	playBtn = widget.newButton{
+		font = _G.defaultFont, fontsize = _G.defaultFontSize,
 		label="Play Now",
 		labelColor = { default={255}, over={128} },
 		default="button.png",
@@ -99,6 +98,7 @@ function scene:create( event )
 	playBtn.y = display.contentHeight - 125
 
 	optionsBtn = widget.newButton{
+		font = _G.defaultFont, fontsize = _G.defaultFontSize,
 		label="Options",
 		labelColor = { default={255}, over={128} },
 		default="button.png",
@@ -124,7 +124,7 @@ function scene:show( event )
 	local sceneGroup = self.view
 	local phase = event.phase
 
-	if phase == "will" then
+	if phase == "will"  and  _G.level1Visited == true then --i.e., if you've played already
 		restartButtonMake(sceneGroup)
 
 		-- Called when the scene is still off screen and is about to move on screen
