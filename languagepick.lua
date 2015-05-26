@@ -7,7 +7,7 @@ require("languages")
 require("level1")
 local composer = require( "composer" )
 local scene = composer.newScene()
-_G.pickedLanguages = {asdf,asldkjafld}
+_G.pickedLanguages = {_LANGUAGES[1],_LANGUAGES[4]}
 
 -- include Corona's "widget" library
 local widget = require "widget"
@@ -25,20 +25,20 @@ function scene:create( event )
         local values =  languagePicker:getValues()
         
         print ("pickerwheelvals".._LANGUAGES[values[1].index].symbol)
-        _G.pickedLanguages = {_LANGUAGES[values[1].index],  _LANGUAGES[values[2].index]}
-
+         _G.pickedLanguages = {_LANGUAGES[values[1].index],  _LANGUAGES[values[2].index]}
+        langText.text = _G.pickedLanguages[1].symbol.."         ".._G.pickedLanguages[2].symbol
+        
         composer.gotoScene( "level1", "fade", 100 )
 
         return true -- indicates successful touch
     end
 
-    local sceneGroup = self.view
-
+ 
      --widget button for returning to prev screen
     local doneBtn = widget.newButton{
         font = _G.defaultFont, fontsize = _G.defaultFontSize,
         label = "Done",
-        labelColor = { default={255}, over={128} },
+        labelColor = { default={128}, over={128} },
         default="button.png",
         over="button-over.png",
         width=154, height=40,
@@ -55,14 +55,14 @@ function scene:create( event )
     { 
         align = "right",
         width = 140,
-        startIndex = 5,
+        startIndex =1,
         labels = _G.languages
     },
     -- Language of the Second Column
     {
         align = "left",
         width = 140,
-        startIndex = 5,
+        startIndex = 4,
         labels = _G.languages
     }
     }
@@ -72,7 +72,6 @@ function scene:create( event )
     {
         font = _G.defaultFont, fontsize = _G.defaultFontSize,
         top =   111,
-        font= _G.defaultFont,
         columns = columnData,
         overlayFrame = 1,
         overlayFrameWidth = 320,

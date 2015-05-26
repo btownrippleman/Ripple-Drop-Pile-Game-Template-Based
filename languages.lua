@@ -1,4 +1,3 @@
- _G.pickedLanguages = {_G.English,_G.Spanish}
 
 
  _G.English = {"to be able", "about", "above", "across", "act",
@@ -2732,6 +2731,9 @@ _G.French = {
 
 _LANGUAGES = {_G.English, _G.Russian, _G.French, _G.Spanish, _G.Italian, German, _G.Japanese, _G.Korean, _G.Chinese, _G.Dutch,
 _G.Afrikaans, _G.Turkish, _G.Portuguese, _G.Ukrainian,_G.Arabic, _G.Swahili}
+
+_LANGUAGE_NAMES = {"English", "Russian", "French", "Spanish", "Italian", "German", "Japanese", "Korean", "Chinese", "Dutch",
+"Afrikaans", "Turkish", "Portuguese", "Ukrainian","Arabic", "Swahili"}
 
 _G.defaultFontSize = 16
 _G.defaultFont = "Helvetica"

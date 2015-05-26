@@ -15,15 +15,23 @@ physics.start(); --physics.pause() -- i don't see the point in physics.pause()
 physics.setGravity(0,-2)
 
 
--- physics.setDrawMode("hybrid")
+physics.setDrawMode("hybrid")
 --Runtime:hideErrorAlerts( )
 require("languages")
 require("main")
 
 _G.listLength = 5
 _G.pickedLanguages = {_G.English, _G.Spanish}
-
+numberRight  = 0 -- every time you get a word right, it incrrements this value up 1, every time u answer incorrectly it goes down 1
+time = system.getTimer()-- these two values u will use to modify listLength and give the user an idea as to how they are doing
 --------------------------------------------
+
+function scoreEval()
+
+
+
+end
+
 
 -- forward declarations and other locals
 local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentWidth*0.5
@@ -95,11 +103,15 @@ end
 
 
 function scene:create( event )
+  local numFrames = 0
+  local numAnsweredRight = 0
   local sceneGroup = self.view
   local cellWidth = 100
   local cellHeight = 30
   local languageCells1 = {}
   local languageCells2 = {}
+  local languageSoundCells1 = {}
+  local languageSoundCells2 = {}
   local g2 = _G.pickedLanguages[2]
   local g1 = _G.pickedLanguages[1]
   local lexiconSize = _G.initialWordCapacity	
@@ -126,7 +138,8 @@ function scene:create( event )
 
   function cellExit(obj)
   	obj:setFillColor(1,0,0)
-    transition.to(obj,{time = 700,alpha = 0,onComplete = remove})
+    transition.scaleTo(obj,{time = 700,alpha = 0,xScale=3,yScale =3, onComplete = remove})
+    -- transition.to(obj,{time = 700,alpha = 0,scale=3,onComplete = remove})
   end
 
 
@@ -139,25 +152,32 @@ function scene:create( event )
       table.indexOf(languageCells2, obj) then  index = table.indexOf(languageCells2,obj); list =2
     end
 
-    if list == 1 then
-     if math.abs(languageCells2[index].y - obj.y) < 10 then 
+    if list == 1 and math.abs(languageCells2[index].y - obj.y) < 10 then 
       cellExit(obj); cellExit(languageCells2[index]); 
+      -- cellExit(languageSoundCells2[index]); 
       table.remove(languageCells2,index);
       table.remove(languageCells1,index); 
+      audio.play(audio.loadSound("applause.mp3"))
 
-      -- print("#languageCells2"..#languageCells2)
-      -- print("#languageCells1"..#languageCells1)
 
-       end
-    elseif list ==2 then 
-      if math.abs(languageCells1[index].y - obj.y) < 10 then
+    elseif list ==2 and math.abs(languageCells1[index].y - obj.y) < 10 then
       cellExit(obj); cellExit(languageCells1[index]); 
+      -- cellExit(languageSoundCells1[index]);
       table.remove(languageCells2,index);
       table.remove(languageCells1,index);
+      audio.play(audio.loadSound("tada.mp3"))
 
-      -- print("#languageCells2"..#languageCells2)
-      -- print("#languageCells1"..#languageCells1)     
-  	end
+    else 
+      audio.play(audio.loadSound("wrong.mp3"))
+      -- print("it should be playing")
+      -- print("it should be playing")
+      -- print("it should be playing")
+      -- print("it should be playing")
+      -- print("it should be playing")
+      -- print("it should be playing")
+      -- print("it should be playing")
+      -- print("it should be playing")
+
     end
 
   end
@@ -174,7 +194,7 @@ function scene:create( event )
                --file is the current file or directory name
                table.insert(files, file)
                os.remove( system.pathForFile( file, system.DocumentsDirectory ))
-               print( "Found file: " .. file )
+               -- print( "Found file: " .. file )
             end
        
               
@@ -193,38 +213,38 @@ function scene:create( event )
           end
                -- os.remove( system.pathForFile( "corona.mp3", system.DocumentsDirectory ))
 
-          print ( "RESPONSE: " .. event.response )
+          -- print ( "RESPONSE: " .. event.response )
   end
 
   function soundMake(event)
 
-    if event.phase == "began" then event.target.alpha = .5 end
-    local obj = event.target
-    local lng = obj.language
-            local lfs = require "lfs"
+    -- if event.phase == "began" then event.target.alpha = .5 end
+    -- local obj = event.target
+    -- local lng = obj.language
+    --         local lfs = require "lfs"
 
-            local doc_path = system.pathForFile( nil, system.DocumentsDirectory )
+    --         local doc_path = system.pathForFile( nil, system.DocumentsDirectory )
 
-            for file in lfs.dir(doc_path) do
-               --file is the current file or directory name
-               -- os.remove( system.pathForFile( file, system.DocumentsDirectory ))
-               print( "Found file: " .. file )
-            end
+    --         for file in lfs.dir(doc_path) do
+    --            --file is the current file or directory name
+    --            -- os.remove( system.pathForFile( file, system.DocumentsDirectory ))
+    --            -- print( "Found file: " .. file )
+    --         end
 
 
 
-     if event.phase == "ended" then
-     event.target.alpha = 1
-     network.download(
+    --  if event.phase == "ended" then
+    --  event.target.alpha = 1
+    --  network.download(
 
-            "http://www.translate.google.com/translate_tts?tl="..obj.language.."&q="..obj.text,
-            --  "http://www.trbimg.com/img-5559ef8d/turbine/la-na-waco-biker-gang-deaths-20150518-001/500/500x281",
-             "GET",
-             networkListener,
-             math.random()..".mp3",
-             -- obj.language..obj.text..".mp3",
-             system.DocumentsDirectory )
-                           end
+    --         "http://www.translate.google.com/translate_tts?tl="..obj.language.."&q="..obj.text,
+    --         --  "http://www.trbimg.com/img-5559ef8d/turbine/la-na-waco-biker-gang-deaths-20150518-001/500/500x281",
+    --          "GET",
+    --          networkListener,
+    --          math.random()..".mp3",
+    --          -- obj.language..obj.text..".mp3",
+    --          system.DocumentsDirectory )
+    --                        end
 
   end
 
@@ -329,83 +349,75 @@ function scene:create( event )
   end
 
   local function buttonMake(x,y,width,height,lng,text,id)
-
-
-                  -- local buttonBox = display.newRect(0,0,width,height)
-                  -- buttonBox:setFillColor(0,.5,1)
-                  -- buttonBox.x,buttonBox.y = x,y
-                  -- physics.addBody(buttonBox,"dynamic")
-
-
-
+ 
                   local button = display.newText(text,width,height,_G.defaultFont,_G.defaultFontSize)
                   button.width = width
                   button:setFillColor(0,1,.5)
                   button.x, button.y = x,y
                   button.id = id
                   button.language = lng.symbol
-
-
-                  -- local box = 
-                  -- local t = display.newImageRect(  "sound.png", button.width*1/2,button.height,16)
-                  -- t.xScale = 2
-                  -- box.x  = button.x +  .75*button.width
-                  -- box.y =  button.y
-                  -- box.text = text
-                  -- box.language = lng.symbol
-                  
-
-                  -- -- box.strokeWidth = 2
-                  -- -- box.stroke = { 1, 0.4, 0, 1 }
-
-                  -- physics.addBody(box,"dynamic")
-                  -- box.isFixedRotation = true
-                  -- box.xScale =
-                  -- boxA = display.newRect(150,125,10, 80)
-                  -- boxB = display.newRect(boxA.x - boxA.width/2,boxA.y-boxA.height/2,button.width+box.width+(math.abs(boxA.x-box)), 10)
-                  -- boxB.anchorX = 0
-                  -- boxC = display.newRect(boxA.x - boxA.width/2,boxA.y-boxA.height/2,160, 10)
                   physics.addBody(button,"dynamic ")
                   button.isFixedRotation = true
-
-                  -- local weldJoint1 = physics.newJoint( "piston",  button,box,button.x,button.y,1,0,1,0)
-                  -- local weldJoint2 = physics.newJoint( "distance",button,box,button.anchorX,button.anchorY,box.anchorX,box.anchorY)
-
-                  -- weldJoint2.distance = 0;
-
-                  
-                  
-                  -- g:insert(box)
                   button.alpha = 0
                   transition.to(button,{time = 1000, alpha =1})
-                  -- transition.to(box,{time = 1000, alpha =1})
-                  button:addEventListener("touch",touched)
-
-                  -- box:addEventListener("touch",soundMake)
-
-
+                  button:addEventListener("touch",touched) 
                   return button
   end
 
+  local function soundCellMake(x,y,width,height,lng,text,id)
+                  local radius = 10
+ 
+                  local soundCell = display.newCircle(width,height,radius)
+                  soundCell:setFillColor(0,0,1)
+                  soundCell.x, soundCell.y = x+cellWidth*.5 + radius*1.1,y
+                  soundCell.id = id
+                  soundCell.language = lng.symbol
+                  physics.addBody(soundCell,"dynamic ")
+                  soundCell.isFixedRotation = true
+                  soundCell.alpha = 0
+                  transition.to(soundCell,{time = 1000, alpha =1})
+                  soundCell:addEventListener("touch",soundMake) 
+                  return soundCell
+  end
+
+
+
+
   function cellsCreate(parent,yInit,listLength,lng1,lng2)
-    local cells1, cells2 = {},{}
+    local cells1, cells2,languageSoundCells1,languageSoundCells2 = {},{},{},{}
     local randArray = randomSetOfNumbersGenerator(listLength,lexiconSize)
     local wordlist1 = wordListGenerator(randArray,lng1)
-    for i = 1, #wordlist1 do print ("wordlist1 = "..wordlist1[i]) end
+    -- for i = 1, #wordlist1 do print ("wordlist1 = "..wordlist1[i]) end
     local wordlist2 = wordListGenerator(randArray,lng2)
-    for i = 1, #wordlist2 do print ("wordlist2 = "..wordlist2[i]) end
+    -- for i = 1, #wordlist2 do print ("wordlist2 = "..wordlist2[i]) end
 
     local cellStartX, cellStartY = (display.contentWidth-1.5*cellWidth)/2, yInit
 
 
     for i = 1, listLength do
-    	local c1 = buttonMake(cellStartX,cellStartY+150*math.random(),cellWidth,cellHeight,lng1,wordlist1[i],i)
-    	local c2 = buttonMake(cellStartX+1.5*cellWidth,cellStartY+150*math.random(),cellWidth,cellHeight,lng2,wordlist2[i],i)
+      local randomDist = 150*math.random()
+    	local c1 = buttonMake(cellStartX,cellStartY,cellWidth,cellHeight,lng1,wordlist1[i],i)
+    	local c2 = buttonMake(cellStartX+1.5*cellWidth,cellStartY+randomDist,cellWidth,cellHeight,lng2,wordlist2[i],i)
       table.insert(languageCells1, c1)
       table.insert(languageCells2, c2)
       parent:insert(c1)
       parent:insert(c2)
 
+      -- local c3 = soundCellMake(cellStartX,cellStartY,cellWidth,cellHeight,lng1,wordlist1[i],i)
+      -- local c4 = soundCellMake(cellStartX+1.5*cellWidth,cellStartY+randomDist,cellWidth,cellHeight,lng2,wordlist2[i],i)
+      -- table.insert(languageSoundCells1, c3)
+      -- table.insert(languageSoundCells2, c4)
+      -- parent:insert(c3)
+      -- parent:insert(c4)
+
+      -- local weldJoint = physics.newJoint( "distance",c1,c3,c1.anchorX,c1.anchorY,c3.anchorX,c3.anchorY)    -- making joints between the wordcells and the circle next to it
+      -- local distanceJoint = physics.newJoint( "distance",c1,c3,c1.anchorX,c1.anchorY,c3.anchorX,c3.anchorY)
+
+      -- local weldJoint2 = physics.newJoint( "distance",c2,c4,c2.anchorX,c2.anchorY,c4.anchorX,c4.anchorY)-- making joints between the wordcells and the circle next to it
+      -- local distanceJoint2 = physics.newJoint( "distance",c2,c4,c2.anchorX,c2.anchorY,c4.anchorX,c4.anchorY)
+ 
+
+ 
     end
       
   end
@@ -413,18 +425,31 @@ function scene:create( event )
 
   -- create a widget button (which will loads menu.lua on release)
   --widget button for picking languages
-    languagePickButton = widget.newButton{
-    	font = _G.defaultFont, fontsize = _G.defaultFontSize,
-  		label = "Pick Languages",
-  		labelColor = { default={155,0,155}, over={128} },
-  		default="button.png",
-  		over="button-over.png",
-  		width=154, height=40,
-  		onRelease = onlanguagePickButtonRelease	-- event listener function
-  	}
+  languagePickButton = widget.newButton{
+  	font = _G.defaultFont, fontsize = _G.defaultFontSize,
+		label = "Pick Languages",
+		labelColor = { default={155,0,155}, over={128} },
+		default="button.png",
+		over="button-over.png",
+		width=154, height=40,
+		onRelease = onlanguagePickButtonRelease	-- event listener function
+	}
 
-  	languagePickButton.x = display.contentWidth*0.5
-  	languagePickButton.y = display.contentHeight - (125 +40)/2
+	languagePickButton.x = display.contentWidth*0.5
+	languagePickButton.y = display.contentHeight - (125 +40)/2
+
+  langText = display.newText(_G.pickedLanguages[1].symbol.."         ".._G.pickedLanguages[2].symbol,154,40,_G.defaultFont,44)
+  langText:setFillColor(0.05)
+  -- langText = widget.newButton{
+  --   font = _G.defaultFont, fontSize = 44,
+  --   label= _G.pickedLanguages[1].symbol.."         ".._G.pickedLanguages[2].symbol,
+  --   labelColor = { default={0,0,0,.5}, over={0,0,0,.9} },
+  --   default="button.png",
+  --   over="button-over.png",
+  --   width=154, height=40, -- event listener function where onMenuBtnRelease sends us back to menu.lua with composer
+  -- }
+  langText.x = display.contentWidth*0.5
+  langText.y = display.contentHeight - 210
 
   menuBtn = widget.newButton{
   	font = _G.defaultFont, fontsize = _G.defaultFontSize,
@@ -468,8 +493,15 @@ function scene:create( event )
   sceneGroup:insert( menuBtn )
   sceneGroup:insert( optionsBtn )
   sceneGroup:insert( languagePickButton )
+  sceneGroup:insert( langText )
 
   cellsCreate(sceneGroup,toprect.height,listLength,g1,g2)
+
+  function newFrame(event)
+    numFrames = numFrames +1
+
+  
+  end
 
 end
 
@@ -479,7 +511,6 @@ end
 function scene:show( event )
 sceneGroup = self.view
  
-
   	local sceneGroup = self.view
   	local phase = event.phase
 
@@ -501,6 +532,7 @@ function scene:hide( event )
   	local sceneGroup = self.view
 
   	local phase = event.phase
+    langText.label = math.random()
 
   	if event.phase == "will" then
   		previousScene = "level1"
@@ -553,6 +585,8 @@ scene:addEventListener( "hide", scene )
 scene:addEventListener( "destroy", scene )
 
 -----------------------------------------------------------------------------------------
+
+
 
 return scene
 

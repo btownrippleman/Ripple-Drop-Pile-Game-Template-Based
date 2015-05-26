@@ -16,7 +16,8 @@ local scene = composer.newScene()
 function initializeValues()
  
 previousScene = nil
- 
+_G.pickedLanguages = {_G.English, _G.Spanish}
+
 
 end
 
