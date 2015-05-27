@@ -1,43 +1,33 @@
 -----------------------------------------------------------------------------------------
 --
--- menu.lua
+-- options.lua -- this just basically has the one slider for the number of words to have added 
+-- each time you get down to 2 words
 --
 -----------------------------------------------------------------------------------------
 require("languages")
 local composer = require( "composer" )
 local scene = composer.newScene()
-
-
 -- include Corona's "widget" library
 local widget = require "widget"
-
--- forward declarations and other locals
 local sceneGroup
-
-
-
--- the next 3 sliderlisteners are to change value in number of boxes, box size and bounciness
 
 local function   numberOfWordsSliderListener(event)
 	_G.listLength = math.round(event.value/10)
-	boxText.text = "    #Words:".._G.listLength  -- the number of words to add next time you get a new number of words
+	boxText.text = "    #Words: ".._G.listLength  -- the number of words to add next time you get a new number of words
 end
   
-local function onDoneBtnRelease()
-  	-- go to previous scene
+local function onDoneBtnRelease() -- go to previous scene
   	composer.gotoScene( previousScene, "fade", 100 )
-
   	return true	-- indicates successful touch
 end
-local function onlanguagePickButtonRelease()
-  	-- go to previous scene
-  	composer.gotoScene( "languagepick", "fade", 100 )
 
+local function onlanguagePickButtonRelease() -- changes list of languages, which then you can see back in level1
+  	composer.gotoScene( "languagepick", "fade", 100 )
   	return true	-- indicates successful touch
-  end
+end
 
 function scene:create( event )
-	 local sceneGroup = self.view
+	local sceneGroup = self.view
 
 
 
@@ -70,10 +60,7 @@ function scene:create( event )
  
 	sceneGroup:insert( numberOfWordsSlider )
  	sceneGroup:insert( doneBtn ) 
-	-- sceneGroup:insert( languagePickButton ) 
-
 end
-
 
 function scene:show( event )
 local sceneGroup = self.view

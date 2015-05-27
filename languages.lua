@@ -1,4 +1,9 @@
-
+-----------------------------------------------------------------------------------------
+-- language.lua 
+-- this more or less is just a huge list of words from each of the 16 different languages i used in a previous app
+-- i put in some code here at the bottom to use for language symbols in the level1.lua file to show which languages
+-- were being tested particular where the .symbol of each _G.language name is made i.e. from lines 2747 to 2762
+-----------------------------------------------------------------------------------------
 
  _G.English = {"to be able", "about", "above", "across", "act",
 					"action", "actually", "add", "addition", "adjective",

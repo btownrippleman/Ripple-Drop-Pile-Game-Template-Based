@@ -1,22 +1,14 @@
 -----------------------------------------------------------------------------------------
 --
--- menu.lua
+-- languagepick.lua --this is the scene the scene with the pickerwheel for the different languages chosen
 --
 -----------------------------------------------------------------------------------------
 require("languages")
 require("level1")
 local composer = require( "composer" )
 local scene = composer.newScene()
-_G.pickedLanguages = {_LANGUAGES[1],_LANGUAGES[4]}
-
 -- include Corona's "widget" library
 local widget = require "widget"
-
--- forward declarations and other locals
-
-
-
-
 
 function scene:create( event )
     local sceneGroup = self.view
@@ -66,7 +58,6 @@ function scene:create( event )
         labels = _G.languages
     }
     }
-
     -- Create the widget
       languagePicker = widget.newPickerWheel
     {
@@ -89,7 +80,7 @@ function scene:create( event )
 
     --widget button for returning to prev screen
 
-    sceneGroup:insert(  languagePicker )
+    sceneGroup:insert( languagePicker )
     sceneGroup:insert( doneBtn )
 
     end
@@ -98,8 +89,7 @@ function scene:create( event )
 function scene:show( event )
 local sceneGroup = self.view
 local phase = event.phase
--- if sceneGroup:pickerWheel then print "scene group pickherwwell in hide is recognizeed " end
- 
+  
 end
 
 function scene:hide( event )
