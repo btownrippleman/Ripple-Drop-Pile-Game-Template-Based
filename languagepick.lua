@@ -15,14 +15,23 @@ function scene:create( event )
 
     function onDoneBtnRelease(event)
         local values =  languagePicker:getValues()
-        
-        print ("pickerwheelvals".._LANGUAGES[values[1].index].symbol)
-         _G.pickedLanguages = {_LANGUAGES[values[1].index],  _LANGUAGES[values[2].index]}
-        langText.text = _G.pickedLanguages[1].symbol.."         ".._G.pickedLanguages[2].symbol
-        
-        composer.gotoScene( "level1", "fade", 100 )
 
-        return true -- indicates successful touch
+        if  _G.pickedLanguages[1] == _LANGUAGES[values[1].index] and _G.pickedLanguages[2] == _LANGUAGES[values[2].index] then 
+            print ("the two langueages you picked were the same ones you had before")
+            composer.gotoScene( "level1", "fade", 100 )
+            return true 
+
+        elseif values[1] ==  values[2] then
+            print("the two languages are the same")
+            return 0 
+
+        else  _G.pickedLanguages = {_LANGUAGES[values[1].index],  _LANGUAGES[values[2].index]} 
+            print ("pickerwheelvals".._LANGUAGES[values[1].index].symbol)
+            langText.text = _G.pickedLanguages[1].symbol.."         ".._G.pickedLanguages[2].symbol
+             _G.removeAllCells(); 
+            composer.gotoScene( "level1", "fade", 100 )
+            return true -- indicates successful touch 
+        end  
     end
 
  
@@ -87,6 +96,7 @@ function scene:create( event )
 
 
 function scene:show( event )
+
 local sceneGroup = self.view
 local phase = event.phase
   

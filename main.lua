@@ -21,6 +21,8 @@
 --  5+5+5+5+5+10+5+5+5+5+5+10 = 70
 
 -- include the Corona "composer" module
+local licensing = require( "licensing" )
+licensing.init( "google" )
 
 local composer = require( "composer" )
 local scene = composer.newScene()
