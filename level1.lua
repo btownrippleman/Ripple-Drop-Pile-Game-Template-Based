@@ -101,10 +101,13 @@ function scene:create( event )
 
   function cellExit(obj) -- this makes the objects kind of explode and leave
     local overAllScale = 3
+    obj:removeEventListener("touch", touched) 
+
     local params = {time = 700,alpha = 0,xScale=overAllScale,yScale =overAllScale, onComplete = remove}
+    -- local params2 = {"touch", touched}
   	obj:setFillColor(1,0,0)
     passThroughImportantFields( transition.scaleTo, obj, params)
- 
+
   end
 
 
@@ -115,8 +118,9 @@ function scene:create( event )
   function listCheck(obj) -- obj refers to the cell that's being currently touched
     local index, list = 0,0
 
-    if table.indexOf(_G.languageCells1, obj) then index = table.indexOf(_G.languageCells1, obj); list =1 elseif
-      table.indexOf(_G.languageCells2, obj) then  index = table.indexOf(_G.languageCells2,obj); list =2
+    if table.indexOf(_G.languageCells1, obj) then index = table.indexOf(_G.languageCells1, obj); list =1 
+    else index = table.indexOf(_G.languageCells2,obj); list =2
+    
     end
 
     if list == 1 and math.abs(_G.languageCells2[index].y - obj.y) < cellHeight/2 then 
@@ -283,8 +287,12 @@ end
       -- physics.addBody(c,"dynamic ")
       -- c.isFixedRotation = true
       params = {time = 25, alpha = 1}
-      for i = 1, #_G.languageCells1 do-- put the color back after the user let's go of a wordCell
+
+      for i = 1, #_G.languageCells1 do -- put the color back after the user let's go of a wordCell
+        ---ideally id use event.target.columnNumber to refer to a specific column
         passThroughImportantFields( transition.to,_G.languageCells1[i], params)
+        passThroughImportantFields( transition.to,_G.languageCells2[i], params)
+
       end
 
     end
@@ -485,7 +493,7 @@ end
       -- obj.importantFields[i].x = obj.anchorX + 
 
      else
-      print("params[xScal] does not exist") end
+      print("params[xScale] does not exist") end
    end
     f(obj,params)
   end
@@ -500,12 +508,12 @@ end
     end
   end
 
-  function passThroughImportantFields2(f,obj,params) -- slightly different format for functions of the form obj:function()
-   for i=1, #obj.importantFields do
+  function passThroughImportantFields2(f,obj,...) -- slightly different format for functions of the form obj:function()
+   for i=1, #obj.importantFields do -- also, remember f has to put as "f", as Dr. Parker Explained
     local objekt = obj.importantFields[i] 
-              objekt[f](objekt)
+              objekt[f](objekt,params) 
    end
-              obj[f](obj)
+              obj[f](obj,params)
   end 
 -- passThroughImportantFields( languageCells1[1],alpha)
 -- passThroughImportantFields2("removeSelf",languageCells1[1])
