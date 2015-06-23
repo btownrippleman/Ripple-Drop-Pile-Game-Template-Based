@@ -2740,7 +2740,7 @@ _G.Afrikaans, _G.Turkish, _G.Portuguese, _G.Ukrainian,_G.Arabic, _G.Swahili}
 _LANGUAGE_NAMES = {"English", "Russian", "French", "Spanish", "Italian", "German", "Japanese", "Korean", "Chinese", "Dutch",
 "Afrikaans", "Turkish", "Portuguese", "Ukrainian","Arabic", "Swahili"}
 
-_G.defaultFontSize = 28
+_G.defaultFontSize = 14
 _G.defaultFont = "Helvetica"
 _G.languageSymbols = {"en","ru","fr","es","it","de","ja","ko","zh","nl","af","tr","pt","uk","ar","sw"	}
 

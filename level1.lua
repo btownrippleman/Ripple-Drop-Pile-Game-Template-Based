@@ -5,7 +5,6 @@
 -----------------------------------------------------------------------------------------
  -- _G.level1Visited = true
 
-
 local widget = require "widget"
 local composer = require( "composer" )
 local scene = composer.newScene()
@@ -13,7 +12,7 @@ local scene = composer.newScene()
 local physics = require "physics"
 physics.start(); --physics.pause() -- i don't see the point in physics.pause()
 physics.setGravity(0,-2)
--- physics.setDrawMode("hybrid")
+physics.setDrawMode("hybrid")
 --Runtime:hideErrorAlerts( )
 require("languages")
 require("main")
@@ -28,11 +27,11 @@ local menuBtn
 -- 'onRelease' event listener for menuBtn
 local function onlanguagePickButtonRelease(event)
    
-  if event.phase == "ended" and event.target.color then
+   if event.phase == "began" and event.target.color then
    event.target.alpha = .5
    transition.to(event.target,{alpha = .8, time = 250, easing = easeOutBack})
    event.target:setFillColor(1,1,1)
-  else 
+   else 
     if event.target.color then event.target:setFillColor(unpack(event.target.color)) end
 
 
@@ -77,28 +76,27 @@ end
 
 function scene:create( event )
 
-  sceneGroup = self.view
-  cellWidth = 100 -- width of word cells
-  cellHeight = 30 -- height of word cells
+    sceneGroup = self.view
+    cellWidth = 100 -- width of word cells
+    cellHeight = 30 -- height of word cells
   _G.languageCells1 = {} -- array for the first column of word cells
   _G.languageCells2 = {} -- array for the second
-  g2 = _G.pickedLanguages[2] -- using these local variables for languages
-  g1 = _G.pickedLanguages[1]
-  lexiconSize = 200 -- this i'll change in the future but it just assumes you know 200 words in each language
+    g2 = _G.pickedLanguages[2] -- using these local variables for languages
+    g1 = _G.pickedLanguages[1]
+   lexiconSize = 200 -- this i'll change in the future but it just assumes you know 200 words in each language
  
   physics.setGravity(0,-2) -- this pushes the wordCell upward
-  toprect = display.newRect(0,0,640,200) -- this stops the wordCells from moving upward with upward gravity
-  toprect.y = toprect.y -50
+   toprect = display.newRect(0,0,640,200) -- this stops the wordCells from moving upward with upward gravity
   physics.addBody(toprect,"static")
   toprect:setFillColor(0,0,0)
-  background = display.newImageRect( "stock.jpg", screenW, screenH )
+   background = display.newImageRect( "stock.jpg", screenW, screenH )
   background.anchorX = 0
   background.anchorY = 1
   background.x, background.y = 0, display.contentHeight
 
   function remove(obj) 
         display.remove(obj); obj = nil
-  end
+   end
 
   function cellExit(obj) -- this makes the objects kind of explode and leave
     local overAllScale = 3
@@ -106,6 +104,7 @@ function scene:create( event )
     local params = {time = 700,alpha = 0,xScale=overAllScale,yScale =overAllScale, onComplete = remove}
   	obj:setFillColor(1,0,0)
     passThroughImportantFields( transition.scaleTo, obj, params)
+
   end
 
 
@@ -113,8 +112,6 @@ function scene:create( event )
 
   		-- this checks for matching words, and calls for functions to clear them out as well as to add more words
   		-- kind of the bread and butter of the app
-
-
   function listCheck(obj) -- obj refers to the cell that's being currently touched
     local index, list = 0,0
 
@@ -145,55 +142,56 @@ function scene:create( event )
 
   end
 
-  local function networkListener( event )
-    local obj = event.target
-            local files = {}
+ local function networkListener( event )
+  local obj = event.target
+          local files = {}
 
-            local lfs = require "lfs"
+          local lfs = require "lfs"
 
-            local doc_path = system.pathForFile( "", system.TemporaryDirectory )
+          local doc_path = system.pathForFile( "", system.TemporaryDirectory )
 
-            for file in lfs.dir(doc_path) do
-               --file is the current file or directory name
-               table.insert(files, file)
-               --os.remove( system.pathForFile( file, system.TemporaryDirectory ))
-               print( "Found file: " .. file )
-            end
-       
-              
-   
-          if ( event.isError ) then
-                  print ( "Network error - download failed" )
-          else
-                  print("no network error")
-                   local speech = audio.loadSound(files[3],system.TemporaryDirectory)
-
-                  local playSpeech = function()
-                          audio.play( speech )
-                  end
-
-                  playSpeech ()
+          for file in lfs.dir(doc_path) do
+             --file is the current file or directory name
+             table.insert(files, file)
+             --os.remove( system.pathForFile( file, system.TemporaryDirectory ))
+             print( "Found file: " .. file )
           end
-               os.remove( system.pathForFile( "corona.mp3", system.TemporaryDirectory ))
+     
+            
+ 
+        if ( event.isError ) then
+                print ( "Network error - download failed" )
+        else
+                print("no network error")
+                 local speech = audio.loadSound(files[3],system.TemporaryDirectory)
 
-          print ( "RESPONSE: " .. event.response )
-  end
+                local playSpeech = function()
+                        audio.play( speech )
+                end
+
+                playSpeech ()
+        end
+             os.remove( system.pathForFile( "corona.mp3", system.TemporaryDirectory ))
+
+        print ( "RESPONSE: " .. event.response )
+ end
+
+
+
 
   function soundMake(event)
     local obj = event.target
     local lng = obj.language
-            local lfs = require "lfs"
+    local lfs = require "lfs"
+    local doc_path = system.pathForFile( "", system.TemporaryDirectory )
 
-            local doc_path = system.pathForFile( "", system.TemporaryDirectory )
+      for file in lfs.dir(doc_path) do
+         --file is the current file or directory name
+         os.remove( system.pathForFile( file, system.TemporaryDirectory ))
+         print( "Found file: " .. file )
+      end
 
-            for file in lfs.dir(doc_path) do
-               --file is the current file or directory name
-               os.remove( system.pathForFile( file, system.TemporaryDirectory ))
-               print( "Found file: " .. file )
-            end
-
-    if event.phase == "began" then 
-       event.target.alpha = .5;event.target.xScale = 1.1; event.target.yScale = 1.1 
+    if event.phase == "began" then event.target.alpha = .5;event.target.xScale = 1.1; event.target.yScale = 1.1 
          network.download(
 
             "http://www.translate.google.com/translate_tts?tl="..obj.language.."&q="..obj.text,
@@ -205,17 +203,18 @@ function scene:create( event )
              system.TemporaryDirectory )
     else
      event.target.alpha = 1; event.target.xScale = 1; event.target.yScale = 1 
+
     end
   end
 
   function randomSetOfNumbersGenerator(length,listSize) -- this generates a random set of numbers from which we used to pick the same words from
-      local randomSetOfNumbers = {}
-        for i = 1, length do
-          local a =  math.ceil(math.random(listSize))
-          table.insert(randomSetOfNumbers, a)
-
-        end
-      return randomSetOfNumbers
+                                                        -- two different languages
+    local randomSetOfNumbers = {}
+      for i = 1, length do
+        local a =  math.ceil(math.random(listSize))
+        table.insert(randomSetOfNumbers, a)
+      end
+    return randomSetOfNumbers
   end
 
   function wordListGenerator(array,lng)  -- we then use this below in the _G.cellsCreate function taking the array above to get our words
@@ -232,33 +231,27 @@ function scene:create( event )
   function touched(event)  -- this is used for the words to move them up and down, i had to remove physics and put it back in to get this to work 
         -- print(event.target.columnNumber)
 
-    local cells = {}
-    passThroughImportantFields2("toFront",event.target)
-    if event.target.columnNumber == 1 then  -- these for loops temporarily darken the chosen list
-
-      for i = 1, #_G.languageCells1 do
-        _G.languageCells1[i].alpha = .3
+      local cells = {} 
+       passThroughImportantFields2("toFront",event.target)
+      if event.target.columnNumber == 1 then  -- these for loops temporarily darken the chosen list
+        for i = 1, #_G.languageCells1 do
+          _G.languageCells1[i].alpha = .3
+        end
+      else
+        for i =1, #_G.languageCells2 do
+          _G.languageCells2[i].alpha = .3
+        end
       end
-    else
-      for i =1, #_G.languageCells2 do
-        _G.languageCells2[i].alpha = .3
-      end
-    end
-    event.target.alpha = 1
-
-    if event.phase == "began"
-    then
-
-    physics.removeBody(event.target)
-    local scaleFactor = 1.1
-    -- event.target.soundButton.xPrevious = event.target.soundButton.x
-     local params = {time = 25,xScale=scaleFactor,yScale =scaleFactor}
-    passThroughImportantFields( transition.to, event.target, params)
-    transition.to(event.target.soundButton,{time = 25, x = event.target.soundButton.x +(scaleFactor -1)*(event.target.width*.5)})
-    elseif event.phase == "moved" then
+      event.target.alpha = 1
+      if event.phase == "moved" or event.phase == "began" then
+         -- physics.removeBody(c)
+      physics.removeBody(event.target)
+      local overAllScale = 1.1
+      local params = {time = 25,xScale=overAllScale,yScale =overAllScale}
+      passThroughImportantFields( transition.to, event.target, params)
       display.getCurrentStage():setFocus( event.target )
-    event.target.y = event.y
-    else
+      event.target.y = event.y
+      else
       listCheck(event.target) -- this checks to see how low the list is to add more words
       event.target.alpha = 1
       if (event.y < 1/2*toprect.height  ) then  --this code prevents you from dragging the cells too far
@@ -271,11 +264,13 @@ function scene:create( event )
       end
 
       display.getCurrentStage():setFocus( nil  )
-      params = {time = 25,xScale=1,yScale = 1}
+      overAllScale = 1
+      params = {time = 25,xScale=overAllScale,yScale =overAllScale}
       passThroughImportantFields( transition.to,event.target, params)
-      transition.to(event.target.soundButton,{time = 25, x = event.target.soundButton.initialX})
       physics.addBody(event.target,"dynamic ")
       event.target.isFixedRotation = true
+      -- physics.addBody(c,"dynamic ")
+      -- c.isFixedRotation = true
       params = {time = 25, alpha = 1}
 
       for i = 1, #_G.languageCells1 do -- put the color back after the user let's go of a wordCell
@@ -287,14 +282,14 @@ function scene:create( event )
 
     end
     return true
+
   end
 
   function playCongratulatorySound()
       if math.random() > .5 then audio.play(audio.loadSound("applause.mp3")) else
       audio.play(audio.loadSound("tada.mp3")) end
   end
-
-  local function soundCellMake(x,y,width,height,lng,text,id)  --left this code for the future 
+   local function soundCellMake(x,y,width,height,lng,text,id)  --left this code for the future 
                   -- local radius = 10
  
                   -- local soundCell = display.newCircle(width,height,radius)
@@ -311,72 +306,44 @@ function scene:create( event )
   end
       -- local c1 = wordMake(parent,cellStartX,cellStartY+randomDist*math.random(),cellWidth,cellHeight,lng1,wordlist1[i],i,1)
 
-  local function wordMake(parent,x,y,width,height,lng,text,id,columnNumber) -- this makes individual word cells
+ local function wordMake(parent,x,y,width,height,lng,text,id,columnNumber) -- this makes individual word cells
 
-                  -- local soundCell = soundCellMake(x+width,y,width/2,lng,text,id)
-                  -- local wordCell = display.newText(text,width,height,_G.defaultFont,_G.defaultFontSize)
-
-                  local options = 
-                    {
-                        --parent = textGroup,
-                        text = text,     
-                        x = x,
-                        y = y,
-                        align = "center",
-                        width = width,     --required for multi-line and alignment
-                        height = height,
-                        font = _G.defaultFontSize,   
-                        fontSize = _G.defaultFont,
-                     }
-                  -- local wordCell = display.newText( parent, text, x, y, width, height, align = "right", _G.defaultFont, _G.defaultFontSize )
-                  local wordCell = display.newText(options)
+                  local wordCell = display.newText(text,width,height,_G.defaultFont,_G.defaultFontSize)               
                   wordCell.width = width
                   wordCell:setFillColor(0,1,.5)
-                  -- wordCell.x, wordCell.y = x,y
+                  wordCell.x, wordCell.y = x,y
                   wordCell.id = id
                   wordCell.language = lng.symbol
-                  wordCell.anchorY = 0.5
                   wordCell.anchorX = 1
                   wordCell.columnNumber = columnNumber
                   wordCell.alpha = 0
                   transition.to(wordCell,{time = 1000, alpha =1})
-                  wordCell:addEventListener("touch",touched)
                   physics.addBody(wordCell,"dynamic ")
                   wordCell.isFixedRotation = true
-                  parent:insert(wordCell)
+                  wordCell:addEventListener("touch",touched)
+                  wordCell:toFront()
+
+                  local bg = display.newRoundedRect(x,y,width,wordCell.height,2)
+                  bg.strokeWidth = 2
+                  bg:setStrokeColor( 0,0,0 )
+                  bg.x = bg.x - width/2
+                  wordCell.background = bg
+                  bg:setFillColor(.5)
 
                   local c = display.newCircle(x,y,wordCell.height/2)
-                  c.initialX = x
                   wordCell.soundButton = c
-                  c.strokeWidth = 2
-                  c:setStrokeColor(0,0,0)
                   c.language = lng.symbol
                   c.text = text
                   c.id = id
                   c.anchorX = 0
                   c:addEventListener("touch",soundMake)
                   parent:insert(c)
-
-
-                  local bg = display.newRoundedRect(x,y,width,height,2)
-                  wordCell.background = bg
-                  bg.strokeWidth = 2
-                  bg:setStrokeColor( 0,0,0 )
-                  bg.x = bg.x - width/2
-                  bg:setFillColor(.5)
                   parent:insert(bg)
-           
+                  parent:insert(wordCell)
                   wordCell.importantFields = {c,bg}
-                  wordCell:toFront()
 
                   return wordCell
   end
-
-
-
-
-
-
 
   function _G.cellsCreate(parent,yInit,listLength,lng1,lng2) -- this is for making the two columns of words
     --local _G.languageCells1, _G.languageCells2 = {},{}  -- cells for the columns of words
@@ -432,19 +399,19 @@ function scene:create( event )
 
 
   -- widget button for picking languages, i.e.taking you to languagepick.lua
- --  languagePickButton = widget.newButton{
+  languagePickButton = widget.newButton{
 
- --  	font = _G.defaultFont, fontsize = _G.defaultFontSize,
-	-- 	label = "Pick Languages",
-	-- 	labelColor = { default={155,0,155}, over={128} },
-	-- 	default="button.png",
-	-- 	over="button-over.png",
-	-- 	width=154, height=40,
-	-- 	onRelease = onlanguagePickButtonRelease	-- event listener function
-	-- }
+  	font = _G.defaultFont, fontsize = _G.defaultFontSize,
+		label = "Pick Languages",
+		labelColor = { default={155,0,155}, over={128} },
+		default="button.png",
+		over="button-over.png",
+		width=154, height=40,
+		onRelease = onlanguagePickButtonRelease	-- event listener function
+	}
 
-	-- languagePickButton.x = display.contentWidth*0.5
-	-- languagePickButton.y = display.contentHeight - (125 +40)/2
+	languagePickButton.x = display.contentWidth*0.5
+	languagePickButton.y = display.contentHeight - (125 +40)/2
   -- languagePickButton.color = {155,0,155}
 
   --heres the text which shows which languages our on display. when you change the languages in options, however, the old words still remain
@@ -452,15 +419,15 @@ function scene:create( event )
   langText.color = {0,0,1}
   langText:setFillColor(unpack(langText.color))
   langText:addEventListener("touch",onlanguagePickButtonRelease)
-  langText.x = (display.contentWidth-cellWidth-cellHeight*2)/2
-  langText.y = display.contentHeight - 100
+  langText.x = display.contentWidth*0.5 - 80
+  langText.y = display.contentHeight - 210
 
-  langText2 = display.newText(_G.pickedLanguages[2].symbol,langText.x+100,40,_G.defaultFont,44)
+  langText2 = display.newText(_G.pickedLanguages[2].symbol,0,0,_G.defaultFont,44)
   langText2.color = {0,0,1}
-  langText2:setFillColor(unpack(langText.color))
+  langText2:setFillColor(unpack(langText2.color))
   langText2:addEventListener("touch",onlanguagePickButtonRelease)
-  langText2.x = (display.contentWidth+1*cellWidth+cellHeight)/2
-  langText2.y = langText.y
+  langText2.x = display.contentWidth*0.5 + 55
+  langText2.y = display.contentHeight - 210
 
   -- pretty straight forward, takes u back to menu.lua, i.e. this is the button for that
   menuBtn = widget.newButton{
@@ -473,27 +440,27 @@ function scene:create( event )
   	onRelease = onMenuBtnRelease	-- event listener function where onMenuBtnRelease sends us back to menu.lua with composer
   }
   menuBtn.x = display.contentWidth*0.5
-  menuBtn.y = langText.y +40
+  menuBtn.y = display.contentHeight - 125
 
   -- this takes you to the options screen, i.e. to change the number of words to be added each time words get added
-  -- optionsBtn = widget.newButton{
-  -- 	font = _G.defaultFont, fontsize = _G.defaultFontSize,
-  -- 	label="Number of Words Added",
-  -- 	labelColor = { default={155,0,155}, over={128} },
-  -- 	default="button.png",
-  -- 	over="button-over.png",
-  -- 	width=154, height=40,
-  -- 	onRelease = onOptionsBtnRelease	-- event listener function where onOptionsBtnRelease sends us to options.lua with composer
-  -- }
-  -- optionsBtn.x = menuBtn.x
-  -- optionsBtn.y = menuBtn.y - 40
+  optionsBtn = widget.newButton{
+  	font = _G.defaultFont, fontsize = _G.defaultFontSize,
+  	label="Number of Words Added",
+  	labelColor = { default={155,0,155}, over={128} },
+  	default="button.png",
+  	over="button-over.png",
+  	width=154, height=40,
+  	onRelease = onOptionsBtnRelease	-- event listener function where onOptionsBtnRelease sends us to options.lua with composer
+  }
+  optionsBtn.x = menuBtn.x
+  optionsBtn.y = menuBtn.y - 40
 
  -- all the objects are added to the scene so that they don't show up elsewhere
   sceneGroup:insert( toprect)
   sceneGroup:insert( background )
   sceneGroup:insert( menuBtn )
-  -- sceneGroup:insert( optionsBtn )
-  -- sceneGroup:insert( languagePickButton )
+  sceneGroup:insert( optionsBtn )
+  sceneGroup:insert( languagePickButton )
   sceneGroup:insert( langText )
   sceneGroup:insert( langText2 )
 
