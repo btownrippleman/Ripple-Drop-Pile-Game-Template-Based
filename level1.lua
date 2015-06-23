@@ -3,7 +3,6 @@
 -- level1.lua
 --
 -----------------------------------------------------------------------------------------
- -- _G.level1Visited = true
 
 function genInit()
   widget = require "widget"
@@ -13,7 +12,7 @@ function genInit()
   physics = require "physics"
   physics.start();
   physics.setGravity(0,-2)
-  -- physics.setDrawMode("hybrid")
+  physics.setDrawMode("hybrid")
   --Runtime:hideErrorAlerts( )
   require("languages")
   require("main")
@@ -27,7 +26,6 @@ function genInit()
 
 genInit()
 
--- 'onRelease' event listener for menuBtn
 local function onlanguagePickButtonRelease(event)
   local color = event.target.color
    if event.phase == "began" and event.target.color then
@@ -40,9 +38,7 @@ local function onlanguagePickButtonRelease(event)
 
   end
 	return true	-- indicates successful tap
-end
-
--- 'onRelease' event listener for menuBtn
+ end
 local function onMenuBtnRelease()
 
 	-- go to menu.lua scene
@@ -50,7 +46,7 @@ local function onMenuBtnRelease()
 
 	return true	-- indicates successful tap
 
-end
+ end
 	-- 'onRelease' event listener for optionsBtn
 local function onOptionsBtnRelease()
 
@@ -58,7 +54,7 @@ local function onOptionsBtnRelease()
  		composer.gotoScene( "options", "fade", 100 )
 
 		return true	-- indicates successful tap
-end
+ end
 
 ---      _              _ __                    _                       _              
 --     (_)    _ __    | '_ \   ___      _ _   | |_    __ _    _ _     | |_      o O O 
@@ -142,12 +138,12 @@ function scene:create( event )
     sceneGroup:insert( languagePickButton )
     sceneGroup:insert( langText )
     sceneGroup:insert( langText2 )
-  end
+   end
    
   function remove(obj)    
     display.remove(obj)
     obj = nil
-  end
+   end
 
   function cellExit(obj) -- this makes the objects kind of explode and leave
     local overAllScale = 3
@@ -155,7 +151,7 @@ function scene:create( event )
     local params = {time = 700,alpha = 0,xScale=overAllScale,yScale =overAllScale, onComplete = remove}
   	obj:setFillColor(1,0,0)
     passThroughImportantFields( transition.scaleTo, obj, params)
-  end
+   end
 		
   function listCheck(obj) -- obj refers to the cell that's being currently touched
     -- this checks for matching words, and calls for functions to clear them out as well as to add more words
@@ -186,7 +182,7 @@ function scene:create( event )
     else 
       audio.play(audio.loadSound("wrong.mp3"))  -- this is a sound made to indicate you got the word incorrect
     end
-  end
+   end
 
   local function networkListener( event )
     local obj = event.target
@@ -216,7 +212,7 @@ function scene:create( event )
 
     os.remove( system.pathForFile( "corona.mp3", system.TemporaryDirectory ))
     print ( "RESPONSE: " .. event.response )
-  end
+   end -- used to download the words using googles unofficial API tts
 
   function soundMake(event)
     local obj = event.target
@@ -244,7 +240,7 @@ function scene:create( event )
      event.target.alpha = 1; event.target.xScale = 1; event.target.yScale = 1 
 
     end
-  end
+   end -- used for making the sounds of the words
 
   function randomSetOfNumbersGenerator(length,listSize) -- this generates a random set of numbers from which we used to pick the same words from
     local randomSetOfNumbers = {}
@@ -253,7 +249,7 @@ function scene:create( event )
         table.insert(randomSetOfNumbers, a)
       end
     return randomSetOfNumbers
-  end
+   end
 
   function wordListGenerator(array,lng)  -- we then use this below in the _G.cellsCreate function taking the array above to get our words
     local list = {}
@@ -264,7 +260,7 @@ function scene:create( event )
     end
 
     return list
-  end
+   end
 
   function touched(event)  -- this is used for the words to move them up and down, i had to remove physics and put it back in to get this to work 
     local cells = {} 
@@ -304,6 +300,7 @@ function scene:create( event )
     params = {time = 25,xScale=overAllScale,yScale =overAllScale}
     passThroughImportantFields( transition.to,event.target, params)
     physics.addBody(event.target,"dynamic ")
+    event.target.soundButton:toFront()
     event.target.isFixedRotation = true
     -- physics.addBody(c,"dynamic ")
     -- c.isFixedRotation = true
@@ -317,12 +314,12 @@ function scene:create( event )
     end
     end
     return true
-  end
+   end
 
   function playCongratulatorySound()
       if math.random() > .5 then audio.play(audio.loadSound("applause.mp3")) else
       audio.play(audio.loadSound("tada.mp3")) end
-  end
+     end  -- sounds indicating you got the matches right
 
   local function wordMake(parent,x,y,width,height,lng,text,id,columnNumber) -- this makes individual word cells
 
@@ -341,14 +338,14 @@ function scene:create( event )
                   wordCell:addEventListener("touch",touched)
                   wordCell:toFront()
 
-                  local bg = display.newRoundedRect(x,y,width,wordCell.height,2)
+                  local bg = display.newRoundedRect(x,y,width,height,2)
                   bg.strokeWidth = 2
                   bg:setStrokeColor( 0,0,0 )
                   bg.x = bg.x - width/2
                   wordCell.background = bg
                   bg:setFillColor(.5)
 
-                  local c = display.newCircle(x,y,wordCell.height/2)
+                  local c = display.newCircle(x,y,height/2)
                   wordCell.soundButton = c
                   c.language = lng.symbol
                   c.text = text
@@ -361,7 +358,7 @@ function scene:create( event )
                   wordCell.importantFields = {c,bg}
 
                   return wordCell
-  end
+                 end
 
   function _G.cellsCreate(parent,yInit,listLength,lng1,lng2) -- this is for making the two columns of words
     --local _G.languageCells1, _G.languageCells2 = {},{}  -- cells for the columns of words
@@ -378,7 +375,7 @@ function scene:create( event )
       table.insert(_G.languageCells2, c2)
    
     end  
-  end
+   end
 
   function _G.removeAllCells()
     -- if #_G.languageCells1[1].importantFields > 0 then
@@ -398,9 +395,9 @@ function scene:create( event )
      --    _G.languageCells2[i]:removeSelf()
      --  end
     -- end
-  end
+   end  -- removes all cells, used particularly when new languages are being loaded
 
-  function soundCellsMaintainYCoordinate() -- i don't like using functions that use the runtime event listener because I'm afraid it's too computationally expensive.. it may not be 
+  function soundCellsMaintainYCoordinate() -- uses runFrame() during runtime to make sure all the components of the cells stay togeher
     for i = 1, #_G.languageCells1 do
             for j = 1, #_G.languageCells1[i].importantFields do
               _G.languageCells1[i].importantFields[j].y = _G.languageCells1[i].y
@@ -413,23 +410,24 @@ function scene:create( event )
     --   _G.languageCells2[i].background.y  = _G.languageCells2[i].y
 
     -- end
-  end
-
-  function passThroughImportantFields(f,obj,params)
-   for i=1, #obj.importantFields do
-    f(obj.importantFields[i],params)
-    local dist = obj.importantFields[i].x - obj.x 
-     if params["xScale"] and obj.importantFields[i] == obj.soundButton then
-      print ("params[\"xscale\"] exists and it equals "..params["xScale"])
-      obj.importantFields[i].x = dist*params["xScale"] + obj.x
-
-      -- obj.importantFields[i].x = obj.anchorX + 
-
-     else
-      print("params[xScale] does not exist") end
    end
-    f(obj,params)
-  end
+
+  function passThroughImportantFields(f,obj,params) -- the next three functions are functions of functions particularly for word Objects
+    local dist
+       for i=1, #obj.importantFields do
+        f(obj.importantFields[i],params)
+         dist = obj.importantFields[i].x - obj.x 
+         if params["xScale"] and obj.importantFields[i] == obj.soundButton then
+          print ("params[\"xscale\"] exists and it equals "..params["xScale"])
+          obj.importantFields[i].x = dist*params["xScale"] + obj.x
+
+          -- obj.importantFields[i].x = obj.anchorX + 
+
+         else
+          print("params[xScale] does not exist") end
+       end
+        f(obj,params)
+   end
 
   function passThroughAllFields(f,obj)
     for i =1, #obj do
@@ -439,7 +437,7 @@ function scene:create( event )
         else 
           print( "obj"..i.." does not exist" )end
     end
-  end
+   end
 
   function passThroughImportantFields2(f,obj,...) -- slightly different format for functions of the form obj:function()
    for i=1, #obj.importantFields do -- also, remember f has to put as "f", as Dr. Parker Explained
@@ -447,7 +445,7 @@ function scene:create( event )
               objekt[f](objekt,params) 
    end
               obj[f](obj,params)
-  end 
+   end 
 
   function runFrame()
       if #_G.languageCells2 < 3   then -- this is where extra words are added based on _G.listLength, keeps game flowing
@@ -461,7 +459,7 @@ function scene:create( event )
     
       end
 
-  function langTextMaker(x,y,text)
+  function langTextMaker(x,y,text)  -- to make the text for which languages are being tested on 
     local langText = display.newText(text,0,0,_G.defaultFont,44)
     langText.color = {0,0,1}
     langText:setFillColor(unpack(langText.color))
@@ -469,17 +467,14 @@ function scene:create( event )
     langText.x = x --display.contentWidth*0.5 - 80
     langText.y = y --display.contentHeight - 210
     return langText
-  end
+   end
 
   init()
 
   Runtime:addEventListener("enterFrame", runFrame)  -- this event listener, however computationally expesive it is use it, 
      --is to make sure that the langauge cells stay aligned
-
-end
-
-
-
+ end
+-- end of scene:create( event )
 
 function scene:show( event )
   sceneGroup = self.view	
@@ -502,27 +497,27 @@ function scene:show( event )
 
 
   	end
-end
+ end
 
 function scene:hide( event )
-  	local sceneGroup = self.view
-  	local phase = event.phase
-  	if event.phase == "will" then
-  		previousScene = "level1"
+	local sceneGroup = self.view
+	local phase = event.phase
+	if event.phase == "will" then
+		previousScene = "level1"
 
-  		-- Called when the scene is on screen and is about to move off screen
-  		--
-  		-- INSERT code here to pause the scene
-  		-- e.g. stop timers, stop animation, unload sounds, etc.)
+		-- Called when the scene is on screen and is about to move off screen
+		--
+		-- INSERT code here to pause the scene
+		-- e.g. stop timers, stop animation, unload sounds, etc.)
 
-  		-- physics.pause() -- this used to be physics.stop()
-  		Runtime:removeEventListener( "tap", self )
+		-- physics.pause() -- this used to be physics.stop()
+		Runtime:removeEventListener( "tap", self )
 
 
-  	elseif phase == "did" then
-  		-- Called when the scene is now off screen
-  	end
-end
+	elseif phase == "did" then
+		-- Called when the scene is now off screen
+	end
+ end
 
 function scene:destroy( event )
 
@@ -534,11 +529,11 @@ function scene:destroy( event )
 
 	package.loaded[physics] = nil
 	physics = nil
-end
+  end
 
 function scene:tap( event )
-  local sceneGroup = self.view
-end
+   sceneGroup = self.view
+   end
 
 --------------------------------------------------------------------------------
 -- Listener setup
