@@ -369,7 +369,7 @@
 					"adjetivo", "tener miedo", "África", "después", "de nuevo",
 					"contra", "edad", "hace", "convenido", "adelante", "aire",
 					"todo", "permitir", "casi", "solo", "a lo largo de", "ya",
-					"también", "aunque", "siempre", "am", "América", "entre",
+					"también", "aunque", "siempre", "soy", "América", "entre",
 					"cantidad", "y", "ángulo", "animal", "otro", "respuesta",
 					"cualquier", "cualquier cosa", "aparecido", "manzana",
 					"son", "zona", "armas", "ejército", "alrededor", "llegado",
@@ -379,7 +379,7 @@
 					"porque", "convertirse en", "cama", "estado", "antes",
 					"comenzó", "comenzar", "detrás", "ser", "creer", "campana",
 					"pertenecer", "abajo", "al lado de", "mejor", "mejor",
-					"entre", "grande", "proyecto de ley", "pájaros", "bit",
+					"entre", "grande", "proyecto de ley", "pájaros", "poco",
 					"negro", "bloque", "sangre", "golpe", "azul", "bordo",
 					"barco", "cuerpo", "huesos", "libro", "nacido", "ambos",
 					"fondo", "caja", "niño", "ramas", "rotura", "brillante",
@@ -1322,7 +1322,7 @@ _G.French = {
 					"aggettivo", "di avere paura", "Africa", "dopo",
 					"di nuovo", "contro", "età", "fa", "concordato", "avanti",
 					"aria", "tutto", "consentire", "quasi", "solo", "lungo",
-					"già", "anche", "sebbene", "sempre", "am", "America",
+					"già", "anche", "sebbene", "sempre", "sono", "America",
 					"fra", "importo", "e", "angolo", "animale", "un altro",
 					"risposta", "qualsiasi", "tutto", "apparso", "mela",
 					"sono", "area", "stemma", "esercito", "in giro",
@@ -2740,7 +2740,7 @@ _G.Afrikaans, _G.Turkish, _G.Portuguese, _G.Ukrainian,_G.Arabic, _G.Swahili}
 _LANGUAGE_NAMES = {"English", "Russian", "French", "Spanish", "Italian", "German", "Japanese", "Korean", "Chinese", "Dutch",
 "Afrikaans", "Turkish", "Portuguese", "Ukrainian","Arabic", "Swahili"}
 
-_G.defaultFontSize = 14
+_G.defaultFontSize = 28
 _G.defaultFont = "Helvetica"
 _G.languageSymbols = {"en","ru","fr","es","it","de","ja","ko","zh","nl","af","tr","pt","uk","ar","sw"	}
 

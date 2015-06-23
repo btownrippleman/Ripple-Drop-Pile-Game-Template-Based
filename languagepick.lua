@@ -21,17 +21,20 @@ function scene:create( event )
             composer.gotoScene( "level1", "fade", 100 )
             return true 
 
-        elseif values[1] ==  values[2] then
+        elseif values[1].index ==  values[2].index then
             print("the two languages are the same")
-            return 0 
+            return true
 
         else  _G.pickedLanguages = {_LANGUAGES[values[1].index],  _LANGUAGES[values[2].index]} 
             print ("pickerwheelvals".._LANGUAGES[values[1].index].symbol)
-            langText.text = _G.pickedLanguages[1].symbol.."         ".._G.pickedLanguages[2].symbol
+            langText.text = _G.pickedLanguages[1].symbol
+            langText2.text = _G.pickedLanguages[2].symbol
              _G.removeAllCells(); 
             composer.gotoScene( "level1", "fade", 100 )
             return true -- indicates successful touch 
         end  
+
+        print ("values 1 and values 2 equal "..values[1].." "..values[2].." ".." respectively")
     end
 
  
