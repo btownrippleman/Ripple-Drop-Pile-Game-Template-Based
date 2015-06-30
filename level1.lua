@@ -12,12 +12,12 @@ function genInit()
   physics = require "physics"
   physics.start();
   physics.setGravity(0,-2)
-  physics.setDrawMode("hybrid")
+  -- physics.setDrawMode("hybrid")
   --Runtime:hideErrorAlerts( )
   require("languages")
   require("main")
-  _G.listLength = 5 -- the number of words it adds each time
-  _G.pickedLanguages = {_G.English, _G.Spanish} 
+  listLength = 5 -- the number of words it adds each time
+  pickedLanguages = {English, Spanish} 
   -- forward declarations and other s
   screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentWidth*0.5
   scaleFactor = scaleFactorOfBoxes
@@ -25,20 +25,23 @@ function genInit()
  end
 
 genInit()
-
 local function onlanguagePickButtonRelease(event)
   local color = event.target.color
-   if event.phase == "began" and event.target.color then
-   event.target:setFillColor(1,1,1)
-   event.target.alpha = .5
-   transition.to(event.target,{alpha = 1, time = 250, easing = easeOutBack})
-  elseif event.phase == "ended" then
-      event.target:setFillColor(unpack(color)) 
-      composer.gotoScene( "languagepick", "fade", 100 )
+    if event.phase == "began" and event.target.color then
+     event.target:setFillColor(1,1,1)
+     event.target.alpha = .5
+     transition.to(event.target,{alpha = 1, time = 250, easing = easeOutBack})
+    elseif event.phase == "ended" and event.target.color then
+        event.target:setFillColor(unpack(color)) 
+        composer.gotoScene( "languagepick", "fade", 100 )
 
+    else
+      composer.gotoScene("languagepick", "fade", 100 )
+  	return true	-- indicates successful tap
   end
-	return true	-- indicates successful tap
  end
+
+
 local function onMenuBtnRelease()
 
 	-- go to menu.lua scene
@@ -58,7 +61,6 @@ local function onOptionsBtnRelease()
 
 ---      _              _ __                    _                       _              
 --     (_)    _ __    | '_ \   ___      _ _   | |_    __ _    _ _     | |_      o O O 
---     | |   | '  \   | .__/  / _ \    | '_|  |  _|  / _` |  | ' \    |  _|    o      
 --    _|_|_  |_|_|_|  |_|__   \___/   _|_|_   _\__|  \__,_|  |_||_|   _\__|   TS__[O] 
 --  _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""| {======| 
 --  "`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'./o--000' 
@@ -66,13 +68,14 @@ local function onOptionsBtnRelease()
 
 function scene:create( event )
   function init() -- where all the initial physical UI is created
-   sceneGroup = self.view
+    currentRandomSet = {}
+     sceneGroup = self.view
       cellWidth = 100 -- width of word cells
       cellHeight = 30 -- height of word cells
-    _G.languageCells1 = {} -- array for the first column of word cells
-    _G.languageCells2 = {} -- array for the second
-      g2 = _G.pickedLanguages[2] -- using these local variables for languages
-      g1 = _G.pickedLanguages[1]
+    languageCells1 = {} -- array for the first column of word cells
+    languageCells2 = {} -- array for the second
+      g2 = pickedLanguages[2] -- using these local variables for languages
+      g1 = pickedLanguages[1]
      lexiconSize = 200 -- this i'll change in the future but it just assumes you know 200 words in each language
    
     physics.setGravity(0,-2) -- this pushes the wordCell upward
@@ -84,12 +87,12 @@ function scene:create( event )
     background.anchorY = 1
     background.x, background.y = 0, display.contentHeight
 
-    langText = langTextMaker(display.contentWidth*0.5 - 80, display.contentHeight - 210, _G.pickedLanguages[1].symbol)
-    langText2 = langTextMaker(display.contentWidth*0.5 + 55, display.contentHeight - 210, _G.pickedLanguages[2].symbol)
+    langText = langTextMaker(display.contentWidth*0.5 - 80, display.contentHeight - 210, pickedLanguages[1].symbol)
+    langText2 = langTextMaker(display.contentWidth*0.5 + 55, display.contentHeight - 210, pickedLanguages[2].symbol)
 
       languagePickButton = widget.newButton{
 
-    font = _G.defaultFont, fontsize = _G.defaultFontSize,
+    font = defaultFont, fontsize = defaultFontSize,
     x = display.contentWidth*0.5,
     y = display.contentHeight - (125 +40)/2,
     label = "Pick Languages",
@@ -99,17 +102,12 @@ function scene:create( event )
     width=154, height=40,
     onRelease = onlanguagePickButtonRelease -- event listener function
     }
-    languagePickButton.color = {155,0,155}
-    
-
-
-    
-
+     
     -- pretty straight forward, takes u back to menu.lua, i.e. this is the button for that
     menuBtn = widget.newButton{
       x = display.contentWidth*0.5,
       y = display.contentHeight - 125,
-      font = _G.defaultFont, fontsize = _G.defaultFontSize,
+      font = defaultFont, fontsize = defaultFontSize,
       label="Return to Main Menu",
       labelColor = { default={255,0,255}, over={128} },
       default="button.png",
@@ -120,7 +118,7 @@ function scene:create( event )
 
     -- this takes you to the options screen, i.e. to change the number of words to be added each time words get added
     optionsBtn = widget.newButton{
-      font = _G.defaultFont, fontsize = _G.defaultFontSize,
+      font = defaultFont, fontsize = defaultFontSize,
       label="Number of Words Added",
       labelColor = { default={155,0,155}, over={128} },
       default="button.png",
@@ -156,30 +154,44 @@ function scene:create( event )
   function listCheck(obj) -- obj refers to the cell that's being currently touched
     -- this checks for matching words, and calls for functions to clear them out as well as to add more words
       -- kind of the bread and butter of the app
-    local index, list = 0,0
 
-    if table.indexOf(_G.languageCells1, obj) then index = table.indexOf(_G.languageCells1, obj); list =1 
-    else index = table.indexOf(_G.languageCells2,obj); list =2
+          -- one thing i'm trying to change is to use the id and columnNumber properly in the listCheck function so that I don't have to
+    -- go back through my lists to find values that are already given, i.e., in the id and columnNumber
+
+    print("#languageCells1 = "..#languageCells1)
+    print( "obj.id, obj.columnNumber equal ".. obj.id.. " and " .. obj.columnNumber .. " respectively")
     
+    for i =1,#languageCells1 do
+      print("languageCells1["..i.."].id = "..languageCells1[1].id)
+      print("languageCells1["..i.."].columnNumber = "..languageCells1[1].columnNumber)
+      print("languageCells2["..i.."].id = "..languageCells2[1].id)
+      print("languageCells2["..i.."].columnNumber = "..languageCells2[1].columnNumber)
     end
 
-    if list == 1 and math.abs(_G.languageCells2[index].y - obj.y) < cellHeight/2 then 
+    -- local index, list = obj.id, obj.columnNumber
+
+    if table.indexOf(languageCells1, obj) then index = table.indexOf(languageCells1, obj); list =1 
+    else index = table.indexOf(languageCells2,obj); list =2
+    end
+
+    if list == 1 and math.abs(languageCells2[index].y - obj.y) < cellHeight/2 then 
       print ("cell picked from list 1")
-      cellExit(obj); cellExit(_G.languageCells2[index]); 
+      cellExit(obj); cellExit(languageCells2[index]); 
       -- cellExit(languageSoundCells2[index]); 
-      table.remove(_G.languageCells2,index);
-      table.remove(_G.languageCells1,index); 
+      table.remove(languageCells2,index);
+      table.remove(languageCells1,index); 
       playCongratulatorySound()       -- this is a sound made to indicate you got the word right
 
-    elseif list ==2 and math.abs(_G.languageCells1[index].y - obj.y) < cellHeight/2 then
+    elseif list ==2 and math.abs(languageCells1[index].y - obj.y) < cellHeight/2 then
       print ("cell picked from list 2")
-      cellExit(obj); cellExit(_G.languageCells1[index]); 
+      cellExit(obj); cellExit(languageCells1[index]); 
       -- cellExit(languageSoundCells1[index]);
-      table.remove(_G.languageCells2,index);
-      table.remove(_G.languageCells1,index);
+      table.remove(languageCells2,index);
+      table.remove(languageCells1,index);
       playCongratulatorySound()  -- this is a sound made to indicate you got the word right
 
     else 
+      audio.stop()
       audio.play(audio.loadSound("wrong.mp3"))  -- this is a sound made to indicate you got the word incorrect
     end
    end
@@ -201,9 +213,11 @@ function scene:create( event )
        print ( "Network error - download failed" )
     else
       print("no network error")
+
       local speech = audio.loadSound(files[3],system.TemporaryDirectory)
 
       local playSpeech = function()
+              audio.stop()
               audio.play( speech )
       end
 
@@ -242,16 +256,73 @@ function scene:create( event )
     end
    end -- used for making the sounds of the words
 
-  function randomSetOfNumbersGenerator(length,listSize) -- this generates a random set of numbers from which we used to pick the same words from
+  function redundancyCheck(array,initialArray) --this is for randomSetOfNumbersGenerator() to see if any of the values are the same
+    local redundance = false
+    for k = 1, #array do
+      for i = 1, k do
+        if array[i] == array[k] then redundance = true end
+      end
+      if initialArray then
+        for i=1, #initialArray do 
+          if initialArray[i] == array[k] then redundance = true end
+         end
+       end
+
+    end
+   end
+
+  function randomSetOfNumbersGenerator(length,listSize,existingArray) -- this generates a random set of unique numbers from which we used to pick the same words from
     local randomSetOfNumbers = {}
       for i = 1, length do
         local a =  math.ceil(math.random(listSize))
         table.insert(randomSetOfNumbers, a)
       end
+
+      while redundancyCheck(randomSetOfNumbers, existingArray) do randomSetOfNumbers = randomSetOfNumbersGenerator(length,listSize,existingArray) end
+
+      for i = 1, #randomSetOfNumbers do
+        print("randomSetOfNumbers[i] = " .. randomSetOfNumbers[i])
+       end
     return randomSetOfNumbers
    end
 
-  function wordListGenerator(array,lng)  -- we then use this below in the _G.cellsCreate function taking the array above to get our words
+  function fullShuffleCheck(array) -- this is for fullShuffle() to make sure that none of the numbers equals its position in the array
+    local boolean = true
+    for i=1,#array do
+      if array[i] == i then boolean = false
+      end
+    end
+    return boolean
+   end
+
+  function fullShuffle(n)  -- i.e. this changes {1,2,3} to {2,3,1} or {3,1,2} but not {1,3,2} essentially making sure that no value ends up int the same place
+    -- local shift = math.ceil(math.random(n))
+    local array = {}
+    for i =1,n do
+      array[i] = i
+     end
+  
+
+    while not fullShuffleCheck(array) do
+      for i =1, #array do
+        if array[i] == i then
+        local m = array[i]
+        local rand = math.ceil(math.random(n))
+        array[i] = array[rand] 
+        array[rand] = m
+         end
+       end 
+     end
+   
+
+    for i = 1, n do
+      print("shuffle[i] =" .. array[i])
+     end
+
+     return array
+   end
+
+  function wordListGenerator(array,lng)  -- we then use this below in the cellsCreate function taking the array above to get our words
     local list = {}
 
     for i = 1, #array do
@@ -266,12 +337,12 @@ function scene:create( event )
     local cells = {} 
     passThroughImportantFields2("toFront",event.target)
     if event.target.columnNumber == 1 then  -- these for loops temporarily darken the chosen list
-      for i = 1, #_G.languageCells1 do
-        _G.languageCells1[i].alpha = .3
+      for i = 1, #languageCells1 do
+        languageCells1[i].alpha = .3
       end
     else
-      for i =1, #_G.languageCells2 do
-        _G.languageCells2[i].alpha = .3
+      for i =1, #languageCells2 do
+        languageCells2[i].alpha = .3
       end
     end
     event.target.alpha = 1
@@ -287,12 +358,11 @@ function scene:create( event )
     listCheck(event.target) -- this checks to see how low the list is to add more words
     event.target.alpha = 1
     if (event.y < 1/2*toprect.height  ) then  --this code prevents you from dragging the cells too far
-      event.target.y= toprect.height -150
+       transition.to(event.target,{time = 25, y = toprect.height -150 })
     end
 
-    if (event.y > 300  ) then
-      event.target.y =  200
-
+    if (event.y > toprect.y+#languageCells1*cellHeight*1.6 ) then
+       transition.to(event.target,{time = 25, y = toprect.y+#languageCells1*cellHeight*1.6 })
     end
 
     display.getCurrentStage():setFocus( nil  )
@@ -306,10 +376,10 @@ function scene:create( event )
     -- c.isFixedRotation = true
     params = {time = 25, alpha = 1}
 
-    for i = 1, #_G.languageCells1 do -- put the color back after the user let's go of a wordCell
+    for i = 1, #languageCells1 do -- put the color back after the user let's go of a wordCell
       ---ideally id use event.target.columnNumber to refer to a specific column
-      passThroughImportantFields( transition.to,_G.languageCells1[i], params)
-      passThroughImportantFields( transition.to,_G.languageCells2[i], params)
+      passThroughImportantFields( transition.to,languageCells1[i], params)
+      passThroughImportantFields( transition.to,languageCells2[i], params)
 
     end
     end
@@ -321,12 +391,23 @@ function scene:create( event )
       audio.play(audio.loadSound("tada.mp3")) end
      end  -- sounds indicating you got the matches right
 
-  local function wordMake(parent,x,y,width,height,lng,text,id,columnNumber) -- this makes individual word cells
+  function wordMake(parent,x,y,width,height,lng,text,id,columnNumber) -- this makes individual word cells
 
-                  local wordCell = display.newText(text,width,height,_G.defaultFont,_G.defaultFontSize)               
-                  wordCell.width = width
+                  local options = 
+                    {
+                        --parent = textGroup,
+                        text = text,     
+                        x = x,
+                        y = y,
+                        align = "center",
+                        width = width,     --required for multi-line and alignment
+                        height = height,
+                        font = defaultFontSize,   
+                        fontSize = defaultFont,
+                     }
+                  -- local wordCell = display.newText( parent, text, x, y, width, height, align = "right", defaultFont, defaultFontSize )
+                  wordCell = display.newText(options)
                   wordCell:setFillColor(0,1,.5)
-                  wordCell.x, wordCell.y = x,y
                   wordCell.id = id
                   wordCell.language = lng.symbol
                   wordCell.anchorX = 1
@@ -336,6 +417,7 @@ function scene:create( event )
                   physics.addBody(wordCell,"dynamic ")
                   wordCell.isFixedRotation = true
                   wordCell:addEventListener("touch",touched)
+                  wordCell:setLinearVelocity(0,-110)
                   wordCell:toFront()
 
                   local bg = display.newRoundedRect(x,y,width,height,2)
@@ -350,6 +432,8 @@ function scene:create( event )
                   c.language = lng.symbol
                   c.text = text
                   c.id = id
+                  c.strokeWidth = 2
+                  c:setStrokeColor(0)
                   c.anchorX = 0
                   c:addEventListener("touch",soundMake)
                   parent:insert(c)
@@ -360,62 +444,75 @@ function scene:create( event )
                   return wordCell
                  end
 
-  function _G.cellsCreate(parent,yInit,listLength,lng1,lng2) -- this is for making the two columns of words
-    --local _G.languageCells1, _G.languageCells2 = {},{}  -- cells for the columns of words
-    local randArray = randomSetOfNumbersGenerator(listLength,lexiconSize)
-    wordlist1 = wordListGenerator(randArray,lng1)
-    local wordlist2 = wordListGenerator(randArray,lng2)
+  function cellsCreate(parent,yInit,listLength,lng1,lng2) -- this is for making the two columns of words
+    -- local languageCells1, languageCells2 = {},{}  -- cells for the columns of words
+    -- one thing i'm trying to change is to use the id and columnNumber properly in the listCheck function so that I don't have to
+    -- go back through my lists to find values that are already given, i.e., in the id and columnNumber
+
+    local permutedIndices = fullShuffle(listLength) 
+    if currentSet then print(" the previous set consists of "); passThroughAllFields(print, currentSet) end
+    currentSet = randomSetOfNumbersGenerator(listLength,lexiconSize,currentSet)
+    print("the current set consists of")
+    passThroughAllFields(print,currentSet)
+    local wordlist1 = wordListGenerator(currentSet,lng1)
+    local wordlist2 = wordListGenerator(currentSet,lng2)
     local cellStartX, cellStartY = (display.contentWidth-1*cellWidth+cellHeight)/2, yInit
 
-    for i = 1, listLength do
-      local randomDist = 150
-    	local c1 = wordMake(parent,cellStartX,cellStartY+randomDist*math.random(),cellWidth,cellHeight,lng1,wordlist1[i],i,1)
-    	local c2 = wordMake(parent,cellStartX+1.5*cellWidth,cellStartY+randomDist*math.random(),cellWidth,cellHeight,lng2,wordlist2[i],i,2)
-      table.insert(_G.languageCells1, c1)
-      table.insert(_G.languageCells2, c2)
-   
-    end  
-   end
-
-  function _G.removeAllCells()
-    -- if #_G.languageCells1[1].importantFields > 0 then
-    --   print("#_G.languageCells1[1].importantFields = "..#_G.languageCells1[1].importantFields )
-     for i = 1, #_G.languageCells1 do
-      cellExit(_G.languageCells1[i])
-      cellExit(_G.languageCells2[i])
+    if languageCells1 and #languageCells1 > 0 then 
+      for i=1,#languageCells1 do
+         languageCells1[i].id = i 
+      end
      end
 
-     _G.languageCells1, _G.languageCells2 = {},{}
-     -- for i = 1, #_G.languageCells1 do
-     --  for j = 1, #_G.languageCells1[i].importantFields do
-     --    _G.languageCells1[i].importantFields[j]:removeSelf()
-     --    _G.languageCells2[i].importantFields[j]:removeSelf()
+
+    for i = 1, listLength do
+    	local c1 = wordMake(parent,cellStartX,cellStartY+(i)*cellHeight*1.1,cellWidth,cellHeight,lng1,wordlist1[i],#languageCells1 + i,1)
+    	local c2 = wordMake(parent,cellStartX+1.5*cellWidth,cellStartY+(permutedIndices[i])*cellHeight*1.1,cellWidth,cellHeight,lng2,wordlist2[i],#languageCells1 + i,2)
+      table.insert(languageCells1, c1)
+      table.insert(languageCells2, c2)
+   
+     end  
+   end
+
+  function removeAllCells()
+    -- if #languageCells1[1].importantFields > 0 then
+    --   print("#languageCells1[1].importantFields = "..#languageCells1[1].importantFields )
+     for i = 1, #languageCells1 do
+      cellExit(languageCells1[i])
+      cellExit(languageCells2[i])
+     end
+
+     languageCells1, languageCells2 = {},{}
+     -- for i = 1, #languageCells1 do
+     --  for j = 1, #languageCells1[i].importantFields do
+     --    languageCells1[i].importantFields[j]:removeSelf()
+     --    languageCells2[i].importantFields[j]:removeSelf()
      --  end
-     --    _G.languageCells1[i]:removeSelf()
-     --    _G.languageCells2[i]:removeSelf()
+     --    languageCells1[i]:removeSelf()
+     --    languageCells2[i]:removeSelf()
      --  end
     -- end
    end  -- removes all cells, used particularly when new languages are being loaded
 
   function soundCellsMaintainYCoordinate() -- uses runFrame() during runtime to make sure all the components of the cells stay togeher
-    for i = 1, #_G.languageCells1 do
-            for j = 1, #_G.languageCells1[i].importantFields do
-              _G.languageCells1[i].importantFields[j].y = _G.languageCells1[i].y
-              _G.languageCells2[i].importantFields[j].y = _G.languageCells2[i].y
+    for i = 1, #languageCells1 do
+            for j = 1, #languageCells1[i].importantFields do
+              languageCells1[i].importantFields[j].y = languageCells1[i].y
+              languageCells2[i].importantFields[j].y = languageCells2[i].y
             end
     end
 
-    -- for i = 1, #_G.languageCells2 do
-    --   _G.languageCells2[i].soundButton.y = _G.languageCells2[i].y
-    --   _G.languageCells2[i].background.y  = _G.languageCells2[i].y
-
-    -- end
+    -- for i = 1, #languageCells2 do
+    --   languageCells2[i].soundButton.y = languageCells2[i].y
+    --   languageCells2[i].background.y  = languageCells2[i].y
+ -- end
    end
 
   function passThroughImportantFields(f,obj,params) -- the next three functions are functions of functions particularly for word Objects
     local dist
        for i=1, #obj.importantFields do
         f(obj.importantFields[i],params)
+        
          dist = obj.importantFields[i].x - obj.x 
          if params["xScale"] and obj.importantFields[i] == obj.soundButton then
           print ("params[\"xscale\"] exists and it equals "..params["xScale"])
@@ -439,6 +536,7 @@ function scene:create( event )
     end
    end
 
+
   function passThroughImportantFields2(f,obj,...) -- slightly different format for functions of the form obj:function()
    for i=1, #obj.importantFields do -- also, remember f has to put as "f", as Dr. Parker Explained
     local objekt = obj.importantFields[i] 
@@ -448,19 +546,19 @@ function scene:create( event )
    end 
 
   function runFrame()
-      if #_G.languageCells2 < 3   then -- this is where extra words are added based on _G.listLength, keeps game flowing
+      if #languageCells2 < 3   then -- this is where extra words are added based on listLength, keeps game flowing
            -- print("cells should have been created")
            -- if sceneGroup then print ("sceneGroup exists")
            --  else print("sceneGroup does not exist") end
            --  print("the size of scenegroup is "..#sceneGroup)
            --  passThroughAllFields(print,sceneGroup)
-           _G.cellsCreate(sceneGroup,200,_G.listLength,unpack(_G.pickedLanguages)) end
+           cellsCreate(sceneGroup,200,listLength,unpack(pickedLanguages)) end
            soundCellsMaintainYCoordinate()
     
       end
 
   function langTextMaker(x,y,text)  -- to make the text for which languages are being tested on 
-    local langText = display.newText(text,0,0,_G.defaultFont,44)
+    local langText = display.newText(text,0,0,defaultFont,44)
     langText.color = {0,0,1}
     langText:setFillColor(unpack(langText.color))
     langText:addEventListener("touch",onlanguagePickButtonRelease)
@@ -471,10 +569,18 @@ function scene:create( event )
 
   init()
 
+
+
   Runtime:addEventListener("enterFrame", runFrame)  -- this event listener, however computationally expesive it is use it, 
      --is to make sure that the langauge cells stay aligned
+
+     fullShuffle(3)
+
  end
 -- end of scene:create( event )
+------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
 
 function scene:show( event )
   sceneGroup = self.view	
