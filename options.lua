@@ -11,10 +11,11 @@ local scene = composer.newScene()
 local widget = require "widget"
 local sceneGroup
 
-local function   numberOfWordsSliderListener(event)
-	_G.listLength = math.round(event.value/10)
-	boxText.text = "    #Words: ".._G.listLength  -- the number of words to add next time you get a new number of words
-end
+-- # number of words will be decided based on how well the user is doing
+-- local function   numberOfWordsSliderListener(event)
+-- 	_G.listLength = math.round(event.value/10)
+-- 	boxText.text = "    #Words: ".._G.listLength  -- the number of words to add next time you get a new number of words
+-- end
   
 local function onDoneBtnRelease() -- go to previous scene
   	composer.gotoScene( previousScene, "fade", 100 )
@@ -45,20 +46,22 @@ function scene:create( event )
 	doneBtn.y = display.contentHeight - 125
 
 --widget slider for # of words to add, corresponding to _G.listLength value
-  numberOfWordsSlider = widget.newSlider{
-		font = _G.defaultFont, fontsize = _G.defaultFontSize,
-   		labelColor = { default={255}, over={128} },
-  		default="button.png",
-  		over="button-over.png",
-  		width=154, height=40,
-		value = 5,
-      	listener = numberOfWordsSliderListener} -- event listener function
-  numberOfWordsSlider:setValue(50)
-  numberOfWordsSlider.x = display.contentWidth*0.5 - 44
-  numberOfWordsSlider.y = doneBtn.y - 40
-  boxText = display.newText(sceneGroup,"    #Words: 5",numberOfWordsSlider.x+105,numberOfWordsSlider.y)
+ --  numberOfWordsSlider = widget.newSlider{
+	-- 	font = _G.defaultFont, fontsize = _G.defaultFontSize,
+ --   		labelColor = { default={255}, over={128} },
+ --  		default="button.png",
+ --  		over="button-over.png",
+ --  		width=154, height=40,
+	-- 	value = 5,
+ --      	listener = numberOfWordsSliderListener
+ --      	} 
+ --      	-- event listener function
+ --  numberOfWordsSlider:setValue(50)
+ --  numberOfWordsSlider.x = display.contentWidth*0.5 - 44
+ --  numberOfWordsSlider.y = doneBtn.y - 40
+ --  boxText = display.newText(sceneGroup,"    #Words: 5",numberOfWordsSlider.x+105,numberOfWordsSlider.y)
  
-	sceneGroup:insert( numberOfWordsSlider )
+	-- sceneGroup:insert( numberOfWordsSlider )
  	sceneGroup:insert( doneBtn ) 
 end
 

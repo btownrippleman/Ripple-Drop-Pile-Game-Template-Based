@@ -5,90 +5,147 @@
 -----------------------------------------------------------------------------------------
 
 function genInit()
+  currentTime = system.getTimer()
+  -- print "genInit called"
   widget = require "widget"
   composer = require( "composer" )
   scene = composer.newScene()
-  -- include Corona's "physics" library
   physics = require "physics"
   physics.start();
   physics.setGravity(0,-2)
-  -- physics.setDrawMode("hybrid")
-  --Runtime:hideErrorAlerts( )
+  Runtime:hideErrorAlerts( )
   require("languages")
-  require("main")
+  streaks  = require("streaks")
+  -- require("main") --  this code right here cost me 4+ hours trying to figure out why when I would press the "return to menu" btn
+  -- right after i first started and came from the menu that it would let me immediately revert back
+  require("menu")
   listLength = 5 -- the number of words it adds each time
   pickedLanguages = {English, Spanish} 
   -- forward declarations and other s
   screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentWidth*0.5
   scaleFactor = scaleFactorOfBoxes
-  menuBtn = {}
+  
+  --in here I'll put the words actually guessed, i.e. the number where they fall in the array and I'll start out an array each with 
+    --unsure of how many of the last guesses to watch for we arbitrarily chose 5 -- this is an array of ones and zeroes that tells us whether or not the user guessed right
+  guessSize = 5
+  lastNGuesses = {} 
+  previousSet = {}
+  for i = 1, guessSize do
+    lastNGuesses[i] = 1
+  end
+  secondsToGuess = 15
+  secondsEachGuess = {}
+  avgSecondsBetweenGuesses = 0.5
+  numberOfCorrectAnswers = 0
+  numberOfIncorrectAnswers = 0
+  lexiconSize = 20 -- this i'll change in the future but it just assumes you know 200 words in each language
  end
 
-genInit()
-local function onlanguagePickButtonRelease(event)
-  local color = event.target.color
-    if event.phase == "began" and event.target.color then
-     event.target:setFillColor(1,1,1)
-     event.target.alpha = .5
-     transition.to(event.target,{alpha = 1, time = 250, easing = easeOutBack})
-    elseif event.phase == "ended" and event.target.color then
-        event.target:setFillColor(unpack(color)) 
-        composer.gotoScene( "languagepick", "fade", 100 )
+function lexiconSizeChange()
+  if sumOf(lastNGuesses) > #lastNGuesses -1 then
+    lexiconSize = lexiconSize * 1.1
+  elseif sumOf(lastNGuesses) <= #lastNGuesses*.5 and lexiconSize > 15 then
+    lexiconSize = lexiconSize / 1.1
+  end
+ end
 
-    else
-      composer.gotoScene("languagepick", "fade", 100 )
-  	return true	-- indicates successful tap
+function timeSinceLastGuess()
+  if #secondsEachGuess > 0 then
+    return system.getTimer()/1000 - secondsEachGuess[#secondsEachGuess]
+  else
+    return 0
   end
  end
 
 
-local function onMenuBtnRelease()
-
-	-- go to menu.lua scene
-	composer.gotoScene( "menu", "fade", 100 )
-
-	return true	-- indicates successful tap
-
+function guessUpdate(boolean)
+  table.remove(lastNGuesses,1)
+  if boolean == 0 then
+    lastNGuesses[#lastNGuesses + 1] = 0
+  else
+    lastNGuesses[#lastNGuesses + 1] = 1
+  end
+  if #secondsEachGuess > 0 then 
+     secondsEachGuess[#secondsEachGuess+1] = system.getTimer()/1000
+  else 
+    secondsEachGuess[1] = system.getTimer()/1000
+  end
+  if #secondsEachGuess > #lastNGuesses then 
+    -- print (secondsEachGuess[1]) 
+    table.remove(secondsEachGuess,1) 
+  end
+  lexiconSizeChange()
+  -- print("lexiconSize = "..lexiconSize)
  end
-	-- 'onRelease' event listener for optionsBtn
-local function onOptionsBtnRelease()
 
-		-- go to options.lua
- 		composer.gotoScene( "options", "fade", 100 )
+function cellRenewal()
+    if #languageCells2 < 3 then
+     cellsCreate(sceneGroup,lexiconSize,listLength,unpack(pickedLanguages)) 
+   end
+   end
 
-		return true	-- indicates successful tap
+function sumOf(arr)
+  total = 0
+    for i = 1, #arr do
+      total = total + arr[i]
+    end
+  return total
+  end
+
+function streakGenerator(event)
+  time = 250/(avgSecondsBetweenGuesses() * (#lastNGuesses - sumOf(lastNGuesses) +1 ))
+  -- print("time = "..time)
+  if time < 400  and sumOf(lastNGuesses)>guessSize -1  then
+    time = 250/(avgSecondsBetweenGuesses() * (#lastNGuesses - sumOf(lastNGuesses) +1 ))
+    -- print ("time = "..time)
+
+    strokeWidth = 45
+    radius = 25
+    streaks.touched(event,radius,time,strokeWidth)
+  end
+
+ 
  end
 
----      _              _ __                    _                       _              
---     (_)    _ __    | '_ \   ___      _ _   | |_    __ _    _ _     | |_      o O O 
---    _|_|_  |_|_|_|  |_|__   \___/   _|_|_   _\__|  \__,_|  |_||_|   _\__|   TS__[O] 
---  _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""| {======| 
---  "`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'./o--000' 
----
+local function onlanguagePickButtonRelease(event)
+    composer.gotoScene("languagepick", "fade", 100 )
+    return true -- indicates successful tap
+   end
+
+local function onMenuBtnRelease(event)
+
+  -- go to menu.lua scene
+      -- print "onMenuBtnRelease function called"
+      composer.gotoScene( "menu", "fade", 100 )
+    return true -- indicates successful tap
+ end
+  -- 'onRelease' event listener for optionsBtn
+
+local function printNumberAndWord(obj,array)
+  -- print(obj.." "..array[obj])
+ end
+
+genInit()
 
 function scene:create( event )
-  function init() -- where all the initial physical UI is created
-    currentRandomSet = {}
-     sceneGroup = self.view
-      cellWidth = 100 -- width of word cells
-      cellHeight = 30 -- height of word cells
+  function init() 
+    sceneGroup = self.view
+    cellWidth = 100 -- width of word cells
+    cellHeight = 20 -- height of word cells
     languageCells1 = {} -- array for the first column of word cells
     languageCells2 = {} -- array for the second
-      g2 = pickedLanguages[2] -- using these local variables for languages
-      g1 = pickedLanguages[1]
-     lexiconSize = 200 -- this i'll change in the future but it just assumes you know 200 words in each language
-   
-   --newly entered variables
+    g2 = pickedLanguages[2] -- using these local variables for languages
+    g1 = pickedLanguages[1]
+    guesses = {}
+    for i = 1, #g1 do
+      guesses[#guesses+1] = {}
+     end
 
-    numberOfAverageSecondsBetweenGuesses = 0
-    numberOfCorrectAnswers = 0
-    numberOfIncorrectAnswers = 0
+   --newly entered variables
     --you'll also want an array associated with how many times a certain word has been answered correctly
 
-  ----------------------------------
-
     physics.setGravity(0,-2) -- this pushes the wordCell upward
-     toprect = display.newRect(0,0,640,200) -- this stops the wordCells from moving upward with upward gravity
+    toprect = display.newRect(0,0,640,200) -- this stops the wordCells from moving upward with upward gravity
     physics.addBody(toprect,"static")
     toprect:setFillColor(0,0,0)
     background = display.newImageRect( "stock.jpg", screenW, screenH )
@@ -99,17 +156,16 @@ function scene:create( event )
     langText = langTextMaker(display.contentWidth*0.5 - 80, display.contentHeight - 210, pickedLanguages[1].symbol)
     langText2 = langTextMaker(display.contentWidth*0.5 + 55, display.contentHeight - 210, pickedLanguages[2].symbol)
 
-      languagePickButton = widget.newButton{
-
-    font = defaultFont, fontsize = defaultFontSize,
-    x = display.contentWidth*0.5,
-    y = display.contentHeight - (125 +40)/2,
-    label = "Pick Languages",
-    labelColor = { default={155,0,155}, over={128} },
-    default="button.png",
-    over="button-over.png",
-    width=154, height=40,
-    onRelease = onlanguagePickButtonRelease -- event listener function
+    languagePickButton = widget.newButton{
+      font = defaultFont, fontsize = defaultFontSize,
+      x = display.contentWidth*0.5,
+      y = display.contentHeight - (125 +40)/2,
+      label = "Pick Languages",
+      labelColor = { default={155,0,155}, over={128} },
+      default="button.png",
+      over="button-over.png",
+      width=154, height=40,
+      onRelease = onlanguagePickButtonRelease -- event listener function
     }
      
     -- pretty straight forward, takes u back to menu.lua, i.e. this is the button for that
@@ -126,35 +182,38 @@ function scene:create( event )
     }
 
     -- this takes you to the options screen, i.e. to change the number of words to be added each time words get added
-    optionsBtn = widget.newButton{
-      font = defaultFont, fontsize = defaultFontSize,
-      label="Number of Words Added",
-      labelColor = { default={155,0,155}, over={128} },
-      default="button.png",
-      over="button-over.png",
-      width=154, height=40,
-      onRelease = onOptionsBtnRelease -- event listener function where onOptionsBtnRelease sends us to options.lua with composer
-    }
-    optionsBtn.x = menuBtn.x
-    optionsBtn.y = menuBtn.y - 40
+    -- optionsBtn = widget.newButton{
+    --   font = defaultFont, fontsize = defaultFontSize,
+    --   label="Refresh",
+    --   labelColor = { default={155,0,155}, over={128} },
+    --   default="button.png",
+    --   over="button-over.png",
+    --   width=154, height=40,
+    --   onRelease = onRefreshBtnRelease -- event listener function where onRefreshBtnRelease sends us to options.lua with composer
+    -- }
+    -- optionsBtn.x = menuBtn.x
+    -- optionsBtn.y = menuBtn.y - 40
 
     sceneGroup:insert( toprect)
     sceneGroup:insert( background )
     sceneGroup:insert( menuBtn )
-    sceneGroup:insert( optionsBtn )
+    -- sceneGroup:insert( optionsBtn )
     sceneGroup:insert( languagePickButton )
     sceneGroup:insert( langText )
     sceneGroup:insert( langText2 )
    end
-   
+
   function getCellsOrder()
     local arrayValuesofY,sortedArrayValuesofY = {},{}
     for i =1, #languageCells1 do
       arrayValuesofY[i] = languageCells1[i].y 
       sortedArrayValuesofY = arrayValuesofY 
        table.sort(sortedArrayValuesofY)
-      print("languageCells["..i.."].id = "..languageCells1[i].id)
-      print("languageCells["..i.."] is in position "..table.indexOf(sortedArrayValuesofY,arrayValuesofY[i]))
+       print ("****************sortedArrayValuesofY")
+       passThroughAllFields(print,sortedArrayValuesofY)
+
+      -- print("languageCells["..i.."].id = "..languageCells1[i].id)
+      -- print("languageCells["..i.."] is in position "..table.indexOf(sortedArrayValuesofY,arrayValuesofY[i]))
     end
     -- for i =1, #arrayValuesofY do
     --   --   table.sort(sortedArrayValuesofY)
@@ -171,55 +230,97 @@ function scene:create( event )
     local overAllScale = 3
     obj:removeEventListener("touch", touched); obj.soundButton:removeEventListener("touch", soundMake)
     local params = {time = 700,alpha = 0,xScale=overAllScale,yScale =overAllScale, onComplete = remove}
-  	obj:setFillColor(1,0,0)
+    obj:setFillColor(1,0,0)
     passThroughImportantFields( transition.scaleTo, obj, params)
    end
-		
-  function listCheck(obj) -- obj refers to the cell that's being currently touched
+
+  function silentCellExit(obj) -- this makes the objects kind of explode and leave
+    local overAllScale = 1
+    obj:removeEventListener("touch", touched); obj.soundButton:removeEventListener("touch",soundMake)
+    local params = {time = 1500,alpha = 0,xScale=overAllScale,yScale =overAllScale, onComplete = remove}
+    obj:setFillColor(1,0,0)
+    passThroughImportantFields( transition.scaleTo, obj, params)
+   end   
+  
+  function cellPairRemove(i)
+    cellExit(languageCells1[i]); cellExit(languageCells2[i])
+    table.remove(languageCells1, i);
+    table.remove(languageCells2, i);
+   end
+
+  function slowCellPairRemove(i)
+    silentCellExit(languageCells1[i]); cellExit(languageCells2[i])
+    table.remove(languageCells1, i);
+    table.remove(languageCells2, i);
+   end
+
+  function listCheck(obj)
+    -- print("listCheck obj ="..obj.text)
+    -- print("language of word = "..obj.language)
+    -- print("language number = "..obj.langId)
+    -- print("place in array = "..obj.numberInArray)
+
     -- this checks for matching words, and calls for functions to clear them out as well as to add more words
-      -- kind of the bread and butter of the app
+    -- kind of the bread and butter of the app
 
-          -- one thing i'm trying to change is to use the id and columnNumber properly in the listCheck function so that I don't have to
-    -- go back through my lists to find values that are already given, i.e., in the id and columnNumber
+    if table.indexOf(languageCells1, obj) then 
+      index = table.indexOf(languageCells1, obj); list =1 
+     else 
+      index = table.indexOf(languageCells2,obj); list =2 
+     end
 
-    -- print("#languageCells1 = "..#languageCells1)
-    -- print( "obj.id, obj.columnNumber equal ".. obj.id.. " and " .. obj.columnNumber .. " respectively")
-    getCellsOrder(languageCells1)
-    -- getCellsOrder(languageCells2)
+    if list == 1 and math.abs(languageCells2[index].y - obj.y) < cellHeight/2  or list ==2 and math.abs(languageCells1[index].y - obj.y) < cellHeight/2 then 
+      cellPairRemove(index)
+      attemptMade(1)
+
+      answerPercentageChange(obj.numberInArray,1 )
+      -- _LANGUAGES[obj.langId][obj.numberInArray].percentage = .80
+      -- print(_LANGUAGES[obj.langId][obj.numberInArray].percentage)
+
+      -- print("tostring(_LANGUAGES[obj.langId][obj.numberInArray])"..tostring(_LANGUAGES[obj.langId][obj.numberInArray]))
+
+    else
+      answerPercentageChange(obj.numberInArray,0) 
+      attemptMade(0)
+    end
+  end
+
+  function highPriorityWords()
+    -- this return highPriority words without including words already on the screen
+        local highPriorityWords = {}
+        local existingSet = {}
+        for i=1,#languageCells1 do
+          existingSet[#existingSet] = languageCells1[i].numberInArray
+        end
+        print("existing set  = ")
+        print(stringify(existingSet))
     
-    for i =1,#languageCells1 do
-      -- print("languageCells1["..i.."].id = "..languageCells1[1].id)
-      -- print("languageCells1["..i.."].columnNumber = "..languageCells1[1].columnNumber)
-      -- print("languageCells2["..i.."].id = "..languageCells2[1].id)
-      -- print("languageCells2["..i.."].columnNumber = "..languageCells2[1].columnNumber)
-    end
+    -- for i=1,#guesses do
+    --   if sumOf(guesses[i])/#guesses[i] < .50 and i < listSize then
+    --     if table.contains(existingSet,i) then
+    --        print("table.indexOf(existingSet,guesses["..i.."])"..table.indexOf(existingSet,guesses[i]))
+    --     highPriorityWords[#highPriorityWords + 1] = i
+    --     -- local index = a[i]
+    --     table.remove(a,table.indexOf(a,i))
+    --   end
+    --   end
+    --  end
+     return highPriorityWords
+   end
 
-    -- local index, list = obj.id, obj.columnNumber
+  -- the whole purpose of the following function is to record percentages of answers to guesses in order to isolate words that are hard to remember
 
-    if table.indexOf(languageCells1, obj) then index = table.indexOf(languageCells1, obj); list =1 
-    else index = table.indexOf(languageCells2,obj); list =2
-    end
+  function answerPercentageChange(num,val)
+    guesses[num][#guesses[num]+1] = val
+    -- print ("guess size for "..num.." equals "..#guesses[num])
+    -- print ("percentage = "..sumOf(guesses[num])/#guesses[num])
+    passThroughAllFields(print,guesses[num])  
+  end
 
-    if list == 1 and math.abs(languageCells2[index].y - obj.y) < cellHeight/2 then 
-      -- print ("cell picked from list 1")
-      cellExit(obj); cellExit(languageCells2[index]); 
-      -- cellExit(languageSoundCells2[index]); 
-      table.remove(languageCells2,index);
-      table.remove(languageCells1,index); 
-      playCongratulatorySound()       -- this is a sound made to indicate you got the word right
-
-    elseif list ==2 and math.abs(languageCells1[index].y - obj.y) < cellHeight/2 then
-      -- print ("cell picked from list 2")
-      cellExit(obj); cellExit(languageCells1[index]); 
-      -- cellExit(languageSoundCells1[index]);
-      table.remove(languageCells2,index);
-      table.remove(languageCells1,index);
-      playCongratulatorySound()  -- this is a sound made to indicate you got the word right
-
-    else 
-      audio.stop()
-      audio.play(audio.loadSound("wrong.mp3"))  -- this is a sound made to indicate you got the word incorrect
-    end
+  local function soundButtonRefreshListener( obj )
+    --this is to make the white buttons go back to normal shape and size
+      obj.alpha = 1
+      -- print( "soundButtonRefreshListener called" )
    end
 
   local function networkListener( event )
@@ -254,61 +355,89 @@ function scene:create( event )
     -- print ( "RESPONSE: " .. event.response )
    end -- used to download the words using googles unofficial API tts
 
+  function attemptMade(boolean)
+    guessUpdate(boolean)
+    if boolean == 1 then playCongratulatorySound()
+      else playNonCongratulatorySound() end
+    end
+
   function soundMake(event)
+
     local obj = event.target
     local lng = obj.language
-    local lfs = require "lfs"
-    local doc_path = system.pathForFile( "", system.TemporaryDirectory )
+    local text = obj.text
+    if event.phase == "began" then 
+      obj.alpha = .5; obj.xScale = 1.1; obj.xScale = 1.1; display.getCurrentStage():setFocus( event.target )
 
-      for file in lfs.dir(doc_path) do
-         --file is the current file or directory name
-         os.remove( system.pathForFile( file, system.TemporaryDirectory ))
-         -- print( "Found file: " .. file )
+    elseif event.phase == "ended" then 
+      obj.alpha = 1; obj.xScale = 1; obj.xScale = 1;
+      audio.play(audio.loadSound("soundFiles/"..lng.."/"..text..".mp3")) -- I just got rid of obj id
+      -- print(lng)
+      display.getCurrentStage():setFocus(nil)
       end
-
-    if event.phase == "began" then event.target.alpha = .5;event.target.xScale = 1.1; event.target.yScale = 1.1 
-         network.download(
-
-            "http://www.translate.google.com/translate_tts?tl="..obj.language.."&q="..obj.text,
-            --  "http://www.trbimg.com/img-5559ef8d/turbine/la-na-waco-biker-gang-deaths-20150518-001/500/500x281",
-             "GET",
-             networkListener,
-             math.random()..".mp3",
-             -- obj.language..obj.text..".mp3",
-             system.TemporaryDirectory )
-    else
-     event.target.alpha = 1; event.target.xScale = 1; event.target.yScale = 1 
-
-    end
-   end -- used for making the sounds of the words
-
-  function redundancyCheck(array,initialArray) --this is for randomSetOfNumbersGenerator() to see if any of the values are the same
-    local redundance = false
-    for k = 1, #array do
-      for i = 1, k do
-        if array[i] == array[k] then redundance = true end
-      end
-      if initialArray then
-        for i=1, #initialArray do 
-          if initialArray[i] == array[k] then redundance = true end
-         end
-       end
-
-    end
-   end
+    end -- used for making the sounds of the words
 
   function randomSetOfNumbersGenerator(length,listSize,existingArray) -- this generates a random set of unique numbers from which we used to pick the same words from
+    --this function gives us random numbers and at the same time prevents duplicate words from appearing on the screen, really annoying when I figured this out
+    -- print ("listSize = "..listSize)
     local randomSetOfNumbers = {}
-      for i = 1, length do
-        local a =  math.ceil(math.random(listSize))
-        table.insert(randomSetOfNumbers, a)
-      end
+    local wordList = {}
+    local a = {}    -- new array
+    for i=1, listSize do
+       a[i] = i 
+     end
 
-      while redundancyCheck(randomSetOfNumbers, existingArray) do randomSetOfNumbers = randomSetOfNumbersGenerator(length,listSize,existingArray) end
 
-      for i = 1, #randomSetOfNumbers do
-        -- print("randomSetOfNumbers[i] = " .. randomSetOfNumbers[i])
-       end
+
+     -- this makes a list of words that have been poorly guessed i.e. below 25 percent, maybe should be higher, 
+     -- and then sorts them according to how many times they have been guessed
+
+    -- local highPriorityWords = {}
+    
+    -- for i=1,#guesses do
+    --   if sumOf(guesses[i])/#guesses[i] < .50 and i < listSize then
+    --     highPriorityWords[#highPriorityWords + 1] = i
+    --     -- local index = a[i]
+    --     table.remove(a,table.indexOf(a,i))
+    --   end
+    --  end
+     -- highPriorityWords = bubbleSortByNthElement(highPriorityWords,2) -- this sorts the highprioritywords from least to greatest
+    local existingWords = {}
+     for i =1, #languageCells1 do
+      existingWords[#existingWords +1 ] = languageCells1[i].numberInArray
+    end
+    -- print("existingWords = "..stringify(existingWords))
+    -- print(" a = "..stringify(a))
+    -- print("highPriorityWords = "..stringify(highPriorityWords))
+     --this loop takes out the words that are still on the screen, so they don't get added twice
+    if #existingWords > 0 then
+       for i,v in ipairs(existingWords) do
+        if v < listSize then 
+          table.remove(a, table.indexOf(a,v))
+          -- table.remove(highPriorityWords, table.indexOf(highPriorityWords,v))
+        end
+        end
+    end
+
+    -- print(" a after removing existing words = "..stringify(a))
+    -- print("highPriorityWords after removing existing words = "..stringify(highPriorityWords))
+    
+    for i = 1, length do
+      -- if #highPriorityWords > 0 and math.random() < .5 then local m = highPriorityWords[#highPriorityWords]; table.remove(highprioritywords)
+      -- else 
+
+        -- if #highPriorityWords > 0 and math.random() < .5 then 
+        --   local  m = highPriorityWords[#highPriorityWords]; 
+        --   table.remove(highPriorityWords,#highPriorityWords) 
+        -- else
+        local g = math.ceil(math.random(#a)) --  pick a random number in the set of a
+        local m =  a[g]
+        table.remove(a,g)
+      -- end
+       
+      table.insert(randomSetOfNumbers, m)
+ --  this prevents you from picking the same number again
+     end
     return randomSetOfNumbers
    end
 
@@ -374,7 +503,7 @@ function scene:create( event )
     event.target.alpha = 1
     if event.phase == "moved" or event.phase == "began" then
        -- physics.removeBody(c)
-    physics.removeBody(event.target)
+    if event.target.isBodyActive ==true then  physics.removeBody(event.target) end
     local overAllScale = 1.1
     local params = {time = 25,xScale=overAllScale,yScale =overAllScale}
     passThroughImportantFields( transition.to, event.target, params)
@@ -413,11 +542,15 @@ function scene:create( event )
    end
 
   function playCongratulatorySound()
+      audio.stop()
       if math.random() > .5 then audio.play(audio.loadSound("applause.mp3")) else
       audio.play(audio.loadSound("tada.mp3")) end
      end  -- sounds indicating you got the matches right
-
-  function wordMake(parent,x,y,width,height,lng,text,id,columnNumber) -- this makes individual word cells
+  function playNonCongratulatorySound()
+      audio.stop()
+      audio.play(audio.loadSound("wrong.mp3")) 
+     end
+  function wordMake(parent,x,y,width,height,lng,text,id,columnNumber,numberInArray) -- this makes individual word cells
 
                   local options = 
                     {
@@ -435,17 +568,21 @@ function scene:create( event )
                   wordCell = display.newText(options)
                   wordCell:setFillColor(0,1,.5)
                   wordCell.id = id
-                  wordCell.order = 0
-                  wordCell.language = lng.symbol
+                  wordCell.langId = lng.id
+                  -- wordCell.order = 0
+                  wordCell.language = lng.string
                   wordCell.anchorX = 1
                   wordCell.columnNumber = columnNumber
+                  wordCell.numberInArray = numberInArray
+                  wordCell.time = system.getTimer()/1000
                   wordCell.alpha = 0
                   transition.to(wordCell,{time = 1000, alpha =1})
-                  physics.addBody(wordCell,"dynamic ")
+                  physics.addBody(wordCell,"dynamic ",{bounce = 0.3})
                   wordCell.isFixedRotation = true
                   wordCell:addEventListener("touch",touched)
                   wordCell:setLinearVelocity(0,-110)
                   wordCell:toFront()
+                  wordCell:addEventListener("touch", streakGenerator)
 
                   local bg = display.newRoundedRect(x,y,width,height,2)
                   bg.strokeWidth = 2
@@ -456,7 +593,7 @@ function scene:create( event )
 
                   local c = display.newCircle(x,y,height/2)
                   wordCell.soundButton = c
-                  c.language = lng.symbol
+                  c.language = lng.string
                   c.text = text
                   c.id = id
                   c.strokeWidth = 2
@@ -470,37 +607,67 @@ function scene:create( event )
 
                   return wordCell
                  end
+ 
+  function findIndexOfWordInEnglish(arr)
+    returnArr = {}
+    for i,v in ipairs(arr) do
+      returnArr[i] = table.indexOf(_G.English,_G.EnglishWordsByFrequency[i])
+    end
+    return returnArr
+  end
+
+  
 
   function cellsCreate(parent,yInit,listLength,lng1,lng2) -- this is for making the two columns of words
-    -- local languageCells1, languageCells2 = {},{}  -- cells for the columns of words
-    -- one thing i'm trying to change is to use the id and columnNumber properly in the listCheck function so that I don't have to
-    -- go back through my lists to find values that are already given, i.e., in the id and columnNumber
-
+    -- print "cellsCreate called"
     local permutedIndices = fullShuffle(listLength) 
-    if currentSet then 
-      -- print(" the previous set consists of "); passThroughAllFields(print, currentSet) 
-    end
-    currentSet = randomSetOfNumbersGenerator(listLength,lexiconSize,currentSet)
-    -- print("the current set consists of")
-    passThroughAllFields(print,currentSet)
-    local wordlist1 = wordListGenerator(currentSet,lng1)
-    local wordlist2 = wordListGenerator(currentSet,lng2)
+    local currentSet = randomSetOfNumbersGenerator(listLength,lexiconSize,previousSet)
+    local wordlist1,wordlist2 = wordListGenerator(currentSet,lng1), wordListGenerator(currentSet,lng2)
     local cellStartX, cellStartY = (display.contentWidth-1*cellWidth+cellHeight)/2, yInit
+    local associatedPercentages, highPriorityWords = {}, {}
+    -- local highPriorityWords = highPriorityWords()
 
-    if languageCells1 and #languageCells1 > 0 then 
-      for i=1,#languageCells1 do
-         languageCells1[i].id = i 
-      end
-     end
+    -- for i=1,#guesses do
+    --   if sumOf(guesses[i])/#guesses[i] < .50 and i < listSize then
+    --     highPriorityWords[#highPriorityWords + 1] = i
+    --     -- local index = a[i]
+    --     table.remove(a,table.indexOf(a,i))
+    --   end
+    --  end
+    -- if #languageCells1 > 1 then f
+    --     print ("languageCells1 should ahve the followingwords")
+    --     for i=1,#languageCells1 do
+    --     print(English[languageCells1[i].numberInArray])
 
+    --      existingSet[#existingSet+1] = languageCells1[i].numberInArray
+    --       end
+    --     for i=1,#currentSet do
+    --       if table.indexOf(existingSet, currentSet[i]) then
+    --         print(English[currentSet[i]].." should be a duplicate")
+    --       else
+    --         print("no duplicates found")
+    --       end
+
+    --       end
+
+    -- end
+
+    -- for i=1,#guesses do
+    --   if sumOf(guesses[i])/#guesses[i] < .25 then
+    --     associatedPercentages[#associatedPercentages + 1] = sumOf(guesses[i])/#guesses[i]
+    --     highPriorityWords[#highPriorityWords + 1] = {#guesses[i],i}
+    --   end
+    --  end
+      
+    -- highPriorityWords = bubbleSortByNthElement(highPriorityWords,1)
 
     for i = 1, listLength do
-    	local c1 = wordMake(parent,cellStartX,cellStartY+(i)*cellHeight*1.1,cellWidth,cellHeight,lng1,wordlist1[i],#languageCells1 + i,1)
-    	local c2 = wordMake(parent,cellStartX+1.5*cellWidth,cellStartY+(permutedIndices[i])*cellHeight*1.1,cellWidth,cellHeight,lng2,wordlist2[i],#languageCells1 + i,2)
+      local c1 = wordMake(parent,cellStartX,cellStartY+(i)*cellHeight*1.1,cellWidth,cellHeight,lng1,wordlist1[i],#languageCells1 + i,1,currentSet[i])
+      local c2 = wordMake(parent,cellStartX+1.5*cellWidth,cellStartY+(permutedIndices[i])*cellHeight*1.1,cellWidth,cellHeight,lng2,wordlist2[i],#languageCells1 + i,2,currentSet[i])
       table.insert(languageCells1, c1)
       table.insert(languageCells2, c2)
-   
-     end  
+     end
+
    end
 
   function removeAllCells()
@@ -530,11 +697,6 @@ function scene:create( event )
               languageCells2[i].importantFields[j].y = languageCells2[i].y
             end
     end
-
-    -- for i = 1, #languageCells2 do
-    --   languageCells2[i].soundButton.y = languageCells2[i].y
-    --   languageCells2[i].background.y  = languageCells2[i].y
- -- end
    end
 
   function passThroughImportantFields(f,obj,params) -- the next three functions are functions of functions particularly for word Objects
@@ -557,15 +719,85 @@ function scene:create( event )
    end
 
   function passThroughAllFields(f,obj)
-    for i =1, #obj do
-      if obj[i] then 
-        print("obj"..i.." exists and it is ") 
-        f(obj[i]) 
-        else 
-          print( "obj"..i.." does not exist" )end
-    end
+   for i =1, #obj do
+      if  obj[i]~=nil and type(obj[i]) == "table"  then 
+        return passThroughAllFields(f,obj[i]) 
+      else 
+        f(obj[i])
+      end
+     end
    end
 
+  function bubbleSortByNthElement(arr,n)
+    returnArr = {}
+    for i=1,#arr-1 do
+      for j=1,#arr-1 do
+        k = arr[j]
+        if arr[j+1][n] < arr[j][n] then arr[j] = arr[j+1]; arr[j+1] = k end
+      end
+    end
+    for i =1, #arr do
+      returnArr[#returnArr + 1] = arr[i][n]
+    end
+    return returnArr
+   end
+
+  function bubbleSort(arr)
+    for i=1,#arr-1 do
+      for j=1,#arr-1 do
+        k = arr[j]
+        if arr[j+1] < arr[j] then arr[j] = arr[j+1]; arr[j+1] = k end
+      end
+    end
+    return arr
+   end
+
+  function stringify(obj)
+    string = ' '
+     for i =1, #obj do
+        if  obj[i]~=nil and type(obj[i]) == "table"  then
+          -- print(obj[i].string.." recursion") 
+          string = string..'\n'..stringify(obj[i]) 
+        elseif  obj[i]~=nil then
+          string = string .. ' ' .. tostring(obj[i])
+        end
+    end
+    return string
+   end
+
+  function print_r ( t )  
+    local print_r_cache={}
+    local function sub_print_r(t,indent)
+        if (print_r_cache[tostring(t)]) then
+            print(indent.."*"..tostring(t))
+        else
+            print_r_cache[tostring(t)]=true
+            if (type(t)=="table") then
+                for pos,val in pairs(t) do
+                    if (type(val)=="table") then
+                        print(indent.."["..pos.."] => "..tostring(t).." {")
+                        sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
+                        print(indent..string.rep(" ",string.len(pos)+6).."}")
+                    elseif (type(val)=="string") then
+                        print(indent.."["..pos..'] => "'..val..'"')
+                    else
+                        print(indent.."["..pos.."] => "..tostring(val))
+                    end
+                end
+            else
+                print(indent..tostring(t))
+            end
+        end
+    end
+    if (type(t)=="table") then
+        print(tostring(t).." {")
+        sub_print_r(t,"  ")
+        print("}")
+    else
+        sub_print_r(t,"  ")
+    end
+    print()
+   end
 
   function passThroughImportantFields2(f,obj,...) -- slightly different format for functions of the form obj:function()
    for i=1, #obj.importantFields do -- also, remember f has to put as "f", as Dr. Parker Explained
@@ -575,17 +807,25 @@ function scene:create( event )
               obj[f](obj,params)
    end 
 
+  function avgSecondsBetweenGuesses()
+    total = 0 
+    if secondsEachGuess == nil then
+      return "nil"
+    else
+      for i =2, #secondsEachGuess do
+        total  = secondsEachGuess[i] - secondsEachGuess[i-1]
+       end
+      for i =1, #secondsEachGuess do
+        -- print("secondsEachGuess["..i.."] = "..secondsEachGuess[i])
+       end      
+    return total/#secondsEachGuess
+    end
+   end   
+   
   function runFrame()
-      if #languageCells2 < 3   then -- this is where extra words are added based on listLength, keeps game flowing
-           -- print("cells should have been created")
-           -- if sceneGroup then print ("sceneGroup exists")
-           --  else print("sceneGroup does not exist") end
-           --  print("the size of scenegroup is "..#sceneGroup)
-           --  passThroughAllFields(print,sceneGroup)
-           cellsCreate(sceneGroup,200,listLength,unpack(pickedLanguages)) end
-           soundCellsMaintainYCoordinate()
-    
-      end
+      cellRenewal()
+      soundCellsMaintainYCoordinate()    
+    end
 
   function langTextMaker(x,y,text)  -- to make the text for which languages are being tested on 
     local langText = display.newText(text,0,0,defaultFont,44)
@@ -597,7 +837,9 @@ function scene:create( event )
     return langText
    end
 
+
   init()
+
 
 
 
@@ -613,58 +855,47 @@ function scene:create( event )
 ------------------------------------------------------------------------------------------------------------
 
 function scene:show( event )
-  sceneGroup = self.view	
-
+  local sceneGroup = self.view  
   local phase = event.phase
-
   if phase == "will" then
-  		-- Called when the scene is still off screen and is about to move on screen
+      -- Called when the scene is still off screen and is about to move on screen
   elseif phase == "did" then
- 
       -- Runtime:addEventListener( "tap", self )  
-  		-- Called when the scene is now on screen
-  		--
-  		-- INSERT code here to make the scene come alive
-  		-- e.g. start timers, begin animation, play audio, etc.
-  		physics.start()
-
+      -- Called when the scene is now on screen
+      -- INSERT code here to make the scene come alive
+      -- e.g. start timers, begin animation, play audio, etc.
+      physics.start()
       Runtime:addEventListener("enterFrame",runFrame)
-
-
-
-  	end
+    end
  end
 
 function scene:hide( event )
-	local sceneGroup = self.view
-	local phase = event.phase
-	if event.phase == "will" then
-		previousScene = "level1"
-
-		-- Called when the scene is on screen and is about to move off screen
-		--
-		-- INSERT code here to pause the scene
-		-- e.g. stop timers, stop animation, unload sounds, etc.)
-
-		-- physics.pause() -- this used to be physics.stop()
-		Runtime:removeEventListener( "tap", self )
-
-
-	elseif phase == "did" then
-		-- Called when the scene is now off screen
-	end
+  -- print "function scene:hide called"
+  local sceneGroup = self.view
+  local phase = event.phase
+  if event.phase == "will" then
+    -- Called when the scene is on screen and is about to move off screen
+    -- INSERT code here to pause the scene
+    -- e.g. stop timers, stop animation, unload sounds, etc.)
+    -- physics.pause() -- this used to be physics.stop()
+    -- Runtime:removeEventListener( "tap", self )
+    physics.pause()
+  elseif phase == "did" then
+    previousScene = "level1"
+    -- Called when the scene is now off screen
+  end
  end
 
 function scene:destroy( event )
 
-	-- Called prior to the removal of scene's "view" (sceneGroup)
-	--
-	-- INSERT code here to cleanup the scene
-	-- e.g. remove display objects, remove tap listeners, save state, etc.
-	local sceneGroup = self.view
+  -- Called prior to the removal of scene's "view" (sceneGroup)
+  --
+  -- INSERT code here to cleanup the scene
+  -- e.g. remove display objects, remove tap listeners, save state, etc.
+  local sceneGroup = self.view
 
-	package.loaded[physics] = nil
-	physics = nil
+  package.loaded[physics] = nil
+  physics = nil
   end
 
 function scene:tap( event )

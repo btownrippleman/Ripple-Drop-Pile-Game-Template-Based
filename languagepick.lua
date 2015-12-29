@@ -112,7 +112,6 @@ local phase = event.phase
  
 
 if event.phase == "will" then
-    previousScene = "level1"
    
     -- Called when the scene is on screen and is about to move off screen
     --
@@ -120,6 +119,7 @@ if event.phase == "will" then
     -- e.g. stop timers, stop animation, unload sounds, etc.)
 
 elseif phase == "did" then
+    previousScene = "languagepick"
     -- Called when the scene is now off screen
 end
 end

@@ -12,7 +12,7 @@ settings =
 		-- portrait, portraitUpsideDown, landscapeLeft, landscapeRight
 
 		default = "portrait",
-		supported = { "portrait", }
+		supported = { "portrait", "landscape"}
 	},
 	
 	excludeFiles =
@@ -26,6 +26,7 @@ settings =
 	-- iOS Section
 	--
 	iphone =
+	
 	{
 		plist =
 		{
@@ -71,8 +72,22 @@ settings =
 	--
 	-- Android Section
 	--
+
+	    plugins =
+    {
+        ["CoronaProvider.gameNetwork.google"] =
+        {
+            publisherId = "com.coronalabs",
+            supportedPlatforms = { android=true },
+        },
+    },
+
 	android =
 	{
+		minSdkVersion = "14",
+        largeHeap = true,
+		versionCode = "3.0",
+	    googlePlayGamesAppId = "804031292789",
 		usesPermissions =
 		{
 			"android.permission.INTERNET",
